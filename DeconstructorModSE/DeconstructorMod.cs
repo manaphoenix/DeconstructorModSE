@@ -25,8 +25,8 @@ namespace DeconstructorModSE
         public int Efficiency = 0;
         public IMyCubeGrid SGrid;
         private Dictionary<MyDefinitionId, MyPhysicalInventoryItem> Items = new Dictionary<MyDefinitionId, MyPhysicalInventoryItem>();
-        private float totalTime;
-        public bool isGrinding;
+        private float totalTime = 0;
+        public bool isGrinding = false;
         private MyResourceSinkComponent sink;
         private readonly float powerUse = 0.002f; //in MW
 
