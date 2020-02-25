@@ -95,7 +95,6 @@ namespace DeconstructorModSE
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            MyLog.Default.WriteLineAndConsole($"Deconstructor Block Init");
             NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME; // allow UpdateOnceBeforeFrame() to execute, remove if not needed
         }
 

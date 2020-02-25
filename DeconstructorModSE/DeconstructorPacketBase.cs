@@ -10,7 +10,6 @@ namespace DeconstructorModSE
 	{
         [ProtoMember(1)]
         public readonly ulong SenderId;
-
         public DeconstructorPacketBase()
         {
             SenderId = MyAPIGateway.Multiplayer.MyId;

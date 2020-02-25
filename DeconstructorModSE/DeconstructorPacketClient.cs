@@ -11,7 +11,6 @@ namespace DeconstructorModSE
     {
         public DeconstructorPacketClient() { }
 
-        
         [ProtoMember(1)]
         public bool IsGrinding;
 
