@@ -64,7 +64,8 @@ namespace DeconstructorModSE
 
         public void SyncServer(long grid, int eff)
         {
-            MyAPIGateway.Entities.TryGetEntityById(grid, out IMyEntity entity);
+            IMyEntity entity;
+            MyAPIGateway.Entities.TryGetEntityById(grid, out entity);
 
             if (entity != null && !entity.MarkedForClose)
             {
@@ -76,7 +77,6 @@ namespace DeconstructorModSE
                     DeconstructGrid(system);
                 }
             }
-            //TODO
         }
 
         public void DeconstructGrid(IMyCubeGrid SelectedGrid)
@@ -147,29 +147,26 @@ namespace DeconstructorModSE
             if (deconstructor.IsFunctional && deconstructor.IsWorking && deconstructor.Enabled)
             {
                 if (Utils.Grids == null || Grids == null) return;
+                deconstructor.RefreshCustomInfo();
 
-                if (MyAPIGateway.Multiplayer.IsServer)
+                DeconstructorSession.Instance.Net.RelayToClients(new DeconstructorPacketClient(deconstructor.EntityId, isGrinding, Efficiency, totalTime));
+                if (totalTime <= 0)
                 {
-                    DeconstructorSession.Instance.Net.RelayToClients(new DeconstructorPacketClient(deconstructor.EntityId, isGrinding, Efficiency, totalTime));
-                    if (totalTime <= 0 && Items.Count > 0)
+                    if (Items.Count > 0)
                     {
                         Utils.SpawnItems(MyInventory, ref Items);
-                    } else
+                    }
+                    else
                     {
                         isGrinding = false;
                         SetPower();
                     }
-                    
-                    //SERVER
                 } else
                 {
-                    deconstructor.RefreshCustomInfo();
-                    if (totalTime > 0 && isGrinding)
+                    if (isGrinding)
                     {
                         NeedsUpdate = MyEntityUpdateEnum.EACH_FRAME | MyEntityUpdateEnum.EACH_100TH_FRAME;
                     }
-                    
-                    //CLIENT
                 }
 
                 Grids = Utils.Grids.Where(x => !x.IsSameConstructAs(deconstructor.CubeGrid) && (x.GetPosition() - deconstructor.GetPosition()).Length() <= DeconstructorSession.Dist && (x.SmallOwners.Contains(deconstructor.OwnerId) || x.SmallOwners.Count == 0)).ToList();

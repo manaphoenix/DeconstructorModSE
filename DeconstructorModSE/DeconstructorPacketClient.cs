@@ -35,7 +35,8 @@ namespace DeconstructorModSE
         public override bool Received()
         {
             //TODO CLIENT REC MSG
-            MyAPIGateway.Entities.TryGetEntityById(DeconId, out IMyEntity entity);
+            IMyEntity entity;
+            MyAPIGateway.Entities.TryGetEntityById(DeconId, out entity);
 
             if (entity != null && !entity.MarkedForClose)
             {
