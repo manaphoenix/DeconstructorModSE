@@ -11,7 +11,6 @@ namespace DeconstructorModSE
     {
         public DeconstructorPacketData() { }
 
-        
         [ProtoMember(1)]
         public long GridId;
 

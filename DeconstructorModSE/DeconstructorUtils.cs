@@ -59,8 +59,6 @@ namespace DeconstructorModSE
                     }
                 }
             }
-
-            MyLog.Default.WriteLineAndConsole($"Total Items: {Items.Count}");
         }
 
         public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime)
