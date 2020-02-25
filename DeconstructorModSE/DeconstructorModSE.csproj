@@ -158,6 +158,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DeconstructorMod.cs" />
+    <Compile Include="DeconstructorNetworking.cs" />
+    <Compile Include="DeconstructorPacketBase.cs" />
+    <Compile Include="DeconstructorPacketClient.cs" />
+    <Compile Include="DeconstructorPacketData.cs" />
     <Compile Include="DeconstructorSession.cs" />
     <Compile Include="DeconstructorTerminal.cs" />
     <Compile Include="DeconstructorUtils.cs" />

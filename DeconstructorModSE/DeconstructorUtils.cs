@@ -7,6 +7,7 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 
 namespace DeconstructorModSE
 {
@@ -59,7 +60,7 @@ namespace DeconstructorModSE
                 }
             }
 
-            DeconstructorSession.SendMessage("Item Counter", $"Items: {Items.Count}");
+            MyLog.Default.WriteLineAndConsole($"Total Items: {Items.Count}");
         }
 
         public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime)

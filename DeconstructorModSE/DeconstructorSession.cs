@@ -8,13 +8,19 @@ using VRage.Utils;
 
 namespace DeconstructorModSE
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class DeconstructorSession : MySessionComponentBase
     {
         public static DeconstructorSession Instance;
-        private bool _init = false;
+        public DeconstructorNetworking Net = new DeconstructorNetworking(57747);
+        public bool _TerminalInit = false;
         public const int Dist = 150;
 
+        public override void BeforeStart()
+        {
+            base.BeforeStart();
+            Net.Register();
+        }
         public override void LoadData()
         {
             MyAPIGateway.Entities.OnEntityAdd += EntityAdded;
@@ -25,6 +31,8 @@ namespace DeconstructorModSE
         {
             MyAPIGateway.Entities.OnEntityAdd -= EntityAdded;
 
+            Net?.Unregister();
+            Net = null;
             Utils.Grids.Clear();
 
             Instance = null;
@@ -54,12 +62,7 @@ namespace DeconstructorModSE
         {
             try
             {
-                if (!_init)
-                {
-                    if (MyAPIGateway.Session == null) return;
-                    DeconstructorTerminal.InitControls();
-                    _init = true;
-                }
+                //Nothing
             }
             catch (Exception e)
             {
