@@ -112,9 +112,7 @@ namespace DeconstructorModSE
                     MyInventory.AddItems(amount, Items[i].PhysicalContent);
                     if ((Items[i].Amount - amount) > 0)
                     {
-                        MyLog.Default.WriteLine($"item={Items[i].PhysicalContent.GetId()} :: Old Amount={Items[i].Amount}; What New Amount should be={Items[i].Amount - amount}");
                         Items[i].Amount -= amount;
-                        MyLog.Default.WriteLine($"item={Items[i].PhysicalContent.GetId()} :: NewAmount={Items[i].Amount - amount}");
                     }
                     else
                     {
