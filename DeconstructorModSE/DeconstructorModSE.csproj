@@ -157,14 +157,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeconstructorBlockSettings.cs" />
+    <Compile Include="DeconstructorLog.cs" />
     <Compile Include="DeconstructorMod.cs" />
-    <Compile Include="DeconstructorNetworking.cs" />
-    <Compile Include="DeconstructorPacketBase.cs" />
-    <Compile Include="DeconstructorPacketClient.cs" />
-    <Compile Include="DeconstructorPacketData.cs" />
     <Compile Include="DeconstructorSession.cs" />
-    <Compile Include="DeconstructorTerminal.cs" />
     <Compile Include="DeconstructorUtils.cs" />
+    <Compile Include="Sync\Networking.cs" />
+    <Compile Include="Sync\PacketBase.cs" />
+    <Compile Include="Sync\PacketClient.cs" />
+    <Compile Include="Sync\PacketServer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

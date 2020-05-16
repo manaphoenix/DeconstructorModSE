@@ -14,16 +14,19 @@ namespace DeconstructorModSE
     public static class Utils
 	{
         public readonly static List<IMyCubeGrid> Grids = new List<IMyCubeGrid>();
+        private static Dictionary<MyDefinitionId, MyPhysicalInventoryItem> TempItems = new Dictionary<MyDefinitionId, MyPhysicalInventoryItem>();
         //public readonly static Dictionary<long, IMyCubeGrid> Grids = new Dictionary<long, IMyCubeGrid>();
-
-        public static void DeconstructGrid(IMyInventory inventory, ref IMyCubeGrid SelectedGrid, ref Dictionary<MyDefinitionId, MyPhysicalInventoryItem> Items)
+        
+        public static void DeconstructGrid(IMyInventory inventory, ref IMyCubeGrid SelectedGrid, ref List<MyObjectBuilder_InventoryItem> Items)
         {
+            Items.Clear();
             var Blocks = new List<IMySlimBlock>();
             SelectedGrid.GetBlocks(Blocks);
             MyObjectBuilder_PhysicalObject physicalObjBuilder;
             MyPhysicalInventoryItem phys;
             MyObjectBuilder_CubeBlock Obj;
             var InvItems = new List<VRage.Game.ModAPI.Ingame.MyInventoryItem>();
+            
             MyDefinitionId Id;
 
             foreach (var block in Blocks)
@@ -36,10 +39,10 @@ namespace DeconstructorModSE
                     {
                         phys = new MyPhysicalInventoryItem(Obj.ConstructionStockpile.Items[i].Amount, Obj.ConstructionStockpile.Items[i].PhysicalContent);
                         Id = phys.Content.GetObjectId();
-                        if (!Items.ContainsKey(Id))
-                            Items.Add(Id, phys);
+                        if (!TempItems.ContainsKey(Id))
+                            TempItems.Add(Id, phys);
                         else
-                            Items[Id] = new MyPhysicalInventoryItem(phys.Amount + Items[Id].Amount, phys.Content);
+                            TempItems[Id] = new MyPhysicalInventoryItem(phys.Amount + TempItems[Id].Amount, phys.Content);
                     }
                 }
                 if (block.FatBlock != null && block.FatBlock.HasInventory)
@@ -52,13 +55,19 @@ namespace DeconstructorModSE
                         physicalObjBuilder = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject((MyDefinitionId)InvItems[i].Type);
                         phys = new MyPhysicalInventoryItem(InvItems[i].Amount, physicalObjBuilder);
                         Id = phys.Content.GetObjectId();
-                        if (!Items.ContainsKey(Id))
-                            Items.Add(Id, phys);
+                        if (!TempItems.ContainsKey(Id))
+                            TempItems.Add(Id, phys);
                         else
-                            Items[Id] = new MyPhysicalInventoryItem(phys.Amount + Items[Id].Amount, phys.Content);
+                            TempItems[Id] = new MyPhysicalInventoryItem(phys.Amount + TempItems[Id].Amount, phys.Content);
                     }
                 }
             }
+
+            foreach (var item in TempItems)
+            {
+                Items.Add(item.Value.GetObjectBuilder());
+            }
+            TempItems.Clear();
         }
 
         public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime)
@@ -69,7 +78,7 @@ namespace DeconstructorModSE
 
             float grindRatio = 0;
             float integrity = 0;
-            float grindTime = 0;
+            float grindTime;
             MyCubeBlockDefinition def;
 
             foreach (var block in Blocks)
@@ -88,39 +97,39 @@ namespace DeconstructorModSE
                 totalTime += grindTime * block.BuildLevelRatio;
             }
 
-            totalTime *= (100.0f - MyBlock.Efficiency) / 100.0f;
+            totalTime *= (100.0f - MyBlock.Settings.Efficiency) / 100.0f;
         }
 
-        public static void SpawnItems(IMyInventory MyInventory, ref Dictionary<MyDefinitionId, MyPhysicalInventoryItem> Items)
+        public static void SpawnItems(IMyInventory MyInventory, ref List<MyObjectBuilder_InventoryItem> Items)
         {
-            var TempList = new Dictionary<MyDefinitionId, MyPhysicalInventoryItem>();
             MyFixedPoint amount;
-            foreach (var item in Items)
+
+            for (var i = Items.Count-1; i >= 0; i--)
             {
-                amount = GetMaxAmountPossible(MyInventory, item);
+                amount = GetMaxAmountPossible(MyInventory, Items[i]);
                 if (amount > 0)
                 {
-                    MyInventory.AddItems(amount, item.Value.Content);
-                    if ((item.Value.Amount - amount) > 0)
+                    MyInventory.AddItems(amount, Items[i].PhysicalContent);
+                    if ((Items[i].Amount - amount) > 0)
                     {
-                        TempList.Add(item.Key, new MyPhysicalInventoryItem(item.Value.Amount - amount, item.Value.Content));
+                        MyLog.Default.WriteLine($"item={Items[i].PhysicalContent.GetId()} :: Old Amount={Items[i].Amount}; What New Amount should be={Items[i].Amount - amount}");
+                        Items[i].Amount -= amount;
+                        MyLog.Default.WriteLine($"item={Items[i].PhysicalContent.GetId()} :: NewAmount={Items[i].Amount - amount}");
+                    }
+                    else
+                    {
+                        Items.RemoveAtFast(i);
                     }
                 }
-                else
-                {
-                    TempList.Add(item.Key,item.Value);
-                }
             }
-            Items = TempList;
-            
         }
 
-        public static MyFixedPoint GetMaxAmountPossible(IMyInventory inv, KeyValuePair<MyDefinitionId, MyPhysicalInventoryItem> Item)
+        public static MyFixedPoint GetMaxAmountPossible(IMyInventory inv, MyObjectBuilder_InventoryItem Item)
         {
-            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition(Item.Value.Content.GetId());
+            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition(Item.PhysicalContent.GetId());
             var MaxAmount = (int)((inv.MaxVolume - inv.CurrentVolume).RawValue / (def.Volume*1000000));
 
-            return MaxAmount > Item.Value.Amount ? Item.Value.Amount : MaxAmount;
+            return MaxAmount > Item.Amount ? Item.Amount : MaxAmount;
         }
     }
 }
