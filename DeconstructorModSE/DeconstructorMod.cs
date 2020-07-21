@@ -5,17 +5,14 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
-using VRage.Game;
 using System.Text;
 using IMyShipGrinder = Sandbox.ModAPI.IMyShipGrinder;
-using VRage.Game.Entity;
 using System.Linq;
 using System;
 using Sandbox.Game.EntityComponents;
 using VRage.Utils;
 using VRageMath;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using DeconstructorModSE.Sync;
 
 namespace DeconstructorModSE
 {
@@ -31,6 +28,7 @@ namespace DeconstructorModSE
         public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
         public readonly DeconstructorBlockSettings Settings = new DeconstructorBlockSettings();
         IMyShipGrinder deconstructor;
+       
         IMyInventory MyInventory;
         public List<IMyCubeGrid> Grids;
         public IMyCubeGrid SGrid;
@@ -217,6 +215,7 @@ namespace DeconstructorModSE
 
         public override void UpdateAfterSimulation100()
         {
+
             SyncSettings();
             if (deconstructor.IsFunctional && deconstructor.IsWorking && deconstructor.Enabled)
             {
