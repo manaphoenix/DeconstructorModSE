@@ -105,8 +105,8 @@ namespace DeconstructorModSE
             var system = GetBlock(block);
             if (system != null && system.SGrid != null)
             {
-                DeconstructorSession.Instance.CachedPacketServer.Send(system.deconstructor.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
-                foreach (var control in Controls)
+                DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
+                foreach (var control in DeconstructorSession.Instance.Controls)
                 {
                     control.UpdateVisual();
                 }
