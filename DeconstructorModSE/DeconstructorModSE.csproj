@@ -166,6 +166,7 @@
     <Compile Include="Sync\PacketBase.cs" />
     <Compile Include="Sync\PacketClient.cs" />
     <Compile Include="Sync\PacketServer.cs" />
+    <Compile Include="DeconstructorTerminalInit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

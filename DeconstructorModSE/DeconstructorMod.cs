@@ -13,6 +13,9 @@ using Sandbox.Game.EntityComponents;
 using VRage.Utils;
 using VRageMath;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using System.Runtime.CompilerServices;
+using VRage.Game;
+using System.Threading;
 
 namespace DeconstructorModSE
 {
@@ -27,6 +30,8 @@ namespace DeconstructorModSE
         public const int SETTINGS_CHANGED_COUNTDOWN = (60 * 1) / 10; // div by 10 because it runs in update10
         public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
         public readonly DeconstructorBlockSettings Settings = new DeconstructorBlockSettings();
+        public readonly List<IMyTerminalControl> Controls = new List<IMyTerminalControl>();
+        public IMyTerminalControlTextbox TimerBox;
         IMyShipGrinder deconstructor;
        
         IMyInventory MyInventory;
@@ -105,7 +110,7 @@ namespace DeconstructorModSE
             if (!DeconstructorSession.Instance._TerminalInit)
             {
                 DeconstructorSession.Instance._TerminalInit = true;
-                InitControls<IMyShipGrinder>();
+                DeconstructorTerminalInit.InitControls<IMyShipGrinder>();
             }
 
             deconstructor = (IMyShipGrinder)Entity;
@@ -129,9 +134,7 @@ namespace DeconstructorModSE
         {
             if (Settings.Time > 0)
             {
-                var time = TimeSpan.FromSeconds(Settings.Time);
-                info.Append($"Timer: {time:hh'h 'mm'm 'ss's '}\n");
-                info.Append($"Power Required: {sink.RequiredInputByType(MyResourceDistributorComponent.ElectricityId)*1000}Kw\n");
+                info.Append($"Power Required: {Math.Round(sink.RequiredInputByType(MyResourceDistributorComponent.ElectricityId)*1000,2)}Kw\n");
             }
             if (Settings.Items.Count > 0)
                 info.Append($"Items: {Settings.Items.Count}");
@@ -215,7 +218,6 @@ namespace DeconstructorModSE
 
         public override void UpdateAfterSimulation100()
         {
-
             SyncSettings();
             if (deconstructor.IsFunctional && deconstructor.IsWorking && deconstructor.Enabled)
             {
@@ -241,7 +243,20 @@ namespace DeconstructorModSE
                     }
                 }
 
-                Grids = Utils.Grids.Where(x => !x.IsSameConstructAs(deconstructor.CubeGrid) && (x.GetPosition() - deconstructor.GetPosition()).Length() <= Range && (x.SmallOwners.Contains(deconstructor.OwnerId) || x.SmallOwners.Count == 0)).ToList();
+                Grids.Clear();
+                foreach (var grid in Utils.Grids)
+                {
+                    if (!grid.IsSameConstructAs(deconstructor.CubeGrid) 
+                        && (grid.GetPosition() - deconstructor.GetPosition()).Length() <= Range 
+                        && ((grid.SmallOwners.Contains(deconstructor.OwnerId) && grid.SmallOwners.Count == 1) || grid.SmallOwners.Count == 0)
+                    )
+                    {
+                        if (grid.Physics != null)
+                        {
+                            Grids.Add(grid);
+                        }
+                    }
+                }
             }
             else
                 Grids.Clear();
@@ -265,120 +280,6 @@ namespace DeconstructorModSE
         public override void Close()
         {
             deconstructor.AppendingCustomInfo -= AddCustomInfo;
-        }
-
-        //Terminal
-        static void InitControls<T>()
-        {
-            var gridList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, T>("Grids");
-            gridList.Visible = VisibilityCheck;
-            gridList.Enabled = EnabledCheck;
-            gridList.Multiselect = false;
-            gridList.SupportsMultipleBlocks = false;
-            gridList.VisibleRowsCount = 8;
-            gridList.Title = MyStringId.GetOrCompute("Grindable Grids");
-            gridList.ItemSelected = List_selected;
-            gridList.ListContent = List_content;
-            MyAPIGateway.TerminalControls.AddControl<T>(gridList);
-
-            var efficiency = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, T>("Efficiency");
-            efficiency.Enabled = EnabledCheck;
-            efficiency.Visible = VisibilityCheck;
-            efficiency.SetLimits(0, 99);
-            efficiency.SupportsMultipleBlocks = false;
-            efficiency.Title = MyStringId.GetOrCompute("Efficiency");
-            efficiency.Tooltip = MyStringId.GetOrCompute("Reduces Deconstruction time, But increases Power Requirement");
-            efficiency.Setter = Slider_setter;
-            efficiency.Getter = Slider_getter;
-            efficiency.Writer = Slider_writer;
-            MyAPIGateway.TerminalControls.AddControl<T>(efficiency);
-
-            var button = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlButton, T>("StartDecon");
-            button.Visible = VisibilityCheck;
-            button.Enabled = EnabledCheck;
-            button.SupportsMultipleBlocks = false;
-            button.Title = MyStringId.GetOrCompute("Select");
-            button.Action = Button_action;
-            MyAPIGateway.TerminalControls.AddControl<T>(button);
-        }
-
-        public static DeconstructorMod GetBlock(IMyTerminalBlock block) => block?.GameLogic?.GetAs<DeconstructorMod>();
-
-        static bool VisibilityCheck(IMyTerminalBlock block)
-        {
-            return GetBlock(block) != null;
-        }
-
-        static bool EnabledCheck(IMyTerminalBlock block)
-        {
-            var system = GetBlock(block);
-            return system != null && !system.Settings.IsGrinding;
-        }
-
-        static void Button_action(IMyTerminalBlock block)
-        {
-            var system = GetBlock(block);
-            if (system != null && system.SGrid != null)
-            {
-                DeconstructorSession.Instance.CachedPacketServer.Send(system.deconstructor.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
-            }
-        }
-
-        static void List_selected(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> selected)
-        {
-            var system = GetBlock(block);
-            if (system != null && system.Grids != null && system.Grids.Count > 0)
-            {
-                if (selected.Count > 0)
-                {
-                    system.SGrid = selected.First().UserData as IMyCubeGrid;
-                }
-                else
-                    system.SGrid = null;
-            }
-        }
-
-        static void List_content(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> items, List<MyTerminalControlListBoxItem> selected)
-        {
-            var system = GetBlock(block);
-            if (system != null && system.Grids != null && system.Grids.Count > 0)
-            {
-                foreach (var item in system.Grids)
-                {
-                    var BoxItem = new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(item.CustomName), MyStringId.NullOrEmpty, item);
-                    items.Add(BoxItem);
-                }
-            }
-
-            if (system.SGrid != null)
-                selected.Add(new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(system.SGrid.CustomName), MyStringId.NullOrEmpty, system.SGrid));
-
-        }
-
-        static void Slider_setter(IMyTerminalBlock block, float value)
-        {
-            var system = GetBlock(block);
-            if (system != null)
-            {
-                system.Efficiency = (float)Math.Floor(value);
-            }
-        }
-
-        static float Slider_getter(IMyTerminalBlock block)
-        {
-            var system = GetBlock(block);
-            if (system != null)
-            {
-                return system.Efficiency;
-            }
-            return 0;
-        }
-
-        static void Slider_writer(IMyTerminalBlock block, StringBuilder info)
-        {
-            var system = GetBlock(block);
-            if (system != null)
-                info.Append($"{system.Efficiency}%");
         }
 
     }

@@ -1,5 +1,7 @@
 ﻿using DeconstructorModSE.Sync;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Interfaces.Terminal;
+using System.Collections.Generic;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -14,6 +16,7 @@ namespace DeconstructorModSE
         public bool _TerminalInit = false;
         public PacketServer CachedPacketServer;
         public PacketClient CachedPacketClient;
+        public readonly List<IMyTerminalControl> Controls = new List<IMyTerminalControl>();
 
         public override void LoadData()
         {
