@@ -268,6 +268,10 @@ namespace DeconstructorModSE
             {
                 //60 ticks = 1 second
                 Settings.Time -= 1.0f / 60.0f;
+                if (Settings.Time > 0)
+                {
+                    Mod.TimerBox.UpdateVisual();
+                }
 
                 if (Settings.Time <= 0)
                 {
