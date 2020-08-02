@@ -84,10 +84,7 @@ namespace DeconstructorModSE
             }
             else
             {
-                if (system.Settings.Items.Count <= 0)
-                    return Builder.Append("N/A");
-                else
-                    return Builder.Append("Items: ").Append(system.Settings.Items.Count);
+                return Builder.Append("N/A");
             }
         }
 

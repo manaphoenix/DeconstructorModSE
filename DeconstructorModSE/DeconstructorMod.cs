@@ -30,8 +30,6 @@ namespace DeconstructorModSE
         public const int SETTINGS_CHANGED_COUNTDOWN = (60 * 1) / 10; // div by 10 because it runs in update10
         public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
         public readonly DeconstructorBlockSettings Settings = new DeconstructorBlockSettings();
-        public readonly List<IMyTerminalControl> Controls = new List<IMyTerminalControl>();
-        public IMyTerminalControlTextbox TimerBox;
         IMyShipGrinder deconstructor;
        
         IMyInventory MyInventory;
@@ -136,8 +134,6 @@ namespace DeconstructorModSE
             {
                 info.Append($"Power Required: {Math.Round(sink.RequiredInputByType(MyResourceDistributorComponent.ElectricityId)*1000,2)}Kw\n");
             }
-            if (Settings.Items.Count > 0)
-                info.Append($"Items: {Settings.Items.Count}");
         }
 
         // Saving
@@ -229,6 +225,7 @@ namespace DeconstructorModSE
                     if (Settings.Items.Count > 0)
                     {
                         Utils.SpawnItems(MyInventory, ref Settings.Items);
+                        DeconstructorSession.Instance.ComponentList.UpdateVisual();
                     }
                     else
                     {
