@@ -13,6 +13,8 @@ namespace DeconstructorModSE
 {
 	public static class DeconstructorTerminalInit
 	{
+        public static bool _TerminalInit = false;
+
         public static void InitControls<T>()
         {
             var gridList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, T>("Grids");
@@ -63,11 +65,11 @@ namespace DeconstructorModSE
             componentList.ListContent = ComponentList_content;
             MyAPIGateway.TerminalControls.AddControl<T>(componentList);
 
-            DeconstructorSession.Instance.Controls.Add(button);
-            DeconstructorSession.Instance.Controls.Add(efficiency);
-            DeconstructorSession.Instance.Controls.Add(gridList);
-            DeconstructorSession.Instance.Controls.Add(TimerBox);
-            DeconstructorSession.Instance.Controls.Add(componentList);
+            DeconstructorSession.Instance.DeconButton = button;
+            DeconstructorSession.Instance.EfficiencySlider = efficiency;
+            DeconstructorSession.Instance.GridList = gridList;
+            DeconstructorSession.Instance.TimerBox = TimerBox;
+            DeconstructorSession.Instance.ComponentList = componentList;
         }
         public static DeconstructorMod GetBlock(IMyTerminalBlock block) => block?.GameLogic?.GetAs<DeconstructorMod>();
 
@@ -106,10 +108,10 @@ namespace DeconstructorModSE
             if (system != null && system.SGrid != null)
             {
                 DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
-                foreach (var control in DeconstructorSession.Instance.Controls)
-                {
-                    control.UpdateVisual();
-                }
+                DeconstructorSession.Instance.DeconButton.UpdateVisual();
+                DeconstructorSession.Instance.GridList.UpdateVisual();
+                DeconstructorSession.Instance.TimerBox.UpdateVisual();
+                DeconstructorSession.Instance.ComponentList.UpdateVisual();
             }
         }
 

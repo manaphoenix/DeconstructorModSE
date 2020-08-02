@@ -13,10 +13,13 @@ namespace DeconstructorModSE
     {
         public static DeconstructorSession Instance;
         public Networking Net = new Networking(57747);
-        public bool _TerminalInit = false;
         public PacketServer CachedPacketServer;
         public PacketClient CachedPacketClient;
-        public readonly List<IMyTerminalControl> Controls = new List<IMyTerminalControl>();
+        public IMyTerminalControlListbox GridList {get; set;}
+        public IMyTerminalControlTextbox TimerBox { get; set; }
+        public IMyTerminalControlSlider EfficiencySlider { get; set; }
+        public IMyTerminalControlButton DeconButton { get; set; }
+        public IMyTerminalControlListbox ComponentList { get; set; }
 
         public override void LoadData()
         {

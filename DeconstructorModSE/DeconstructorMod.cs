@@ -107,9 +107,9 @@ namespace DeconstructorModSE
         public override void UpdateOnceBeforeFrame()
         {
             // first update of the block, remove if not needed
-            if (!DeconstructorSession.Instance._TerminalInit)
+            if (!DeconstructorTerminalInit._TerminalInit)
             {
-                DeconstructorSession.Instance._TerminalInit = true;
+                DeconstructorTerminalInit._TerminalInit = true;
                 DeconstructorTerminalInit.InitControls<IMyShipGrinder>();
             }
 
