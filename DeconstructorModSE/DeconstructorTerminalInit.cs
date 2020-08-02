@@ -76,6 +76,7 @@ namespace DeconstructorModSE
         private static StringBuilder TextBoxGetter(IMyTerminalBlock b)
         {
             var system = GetBlock(b);
+            if (system == null) return new StringBuilder();
             var Builder = new StringBuilder();
             if (system.Settings != null && system.Settings.Time > 0)
             {
@@ -102,9 +103,9 @@ namespace DeconstructorModSE
         private static void Button_action(IMyTerminalBlock block)
         {
             var system = GetBlock(block);
-            if (system != null && system.SGrid != null)
+            if (system != null && system.SelectedGrid != null)
             {
-                DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
+                DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SelectedGrid.EntityId, system.Settings.Efficiency);
                 DeconstructorSession.Instance.DeconButton.UpdateVisual();
                 DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
                 DeconstructorSession.Instance.GridList.UpdateVisual();
@@ -119,10 +120,10 @@ namespace DeconstructorModSE
             {
                 if (selected.Count > 0)
                 {
-                    system.SGrid = selected.First().UserData as IMyCubeGrid;
+                    system.SelectedGrid = selected.First().UserData as IMyCubeGrid;
                 }
                 else
-                    system.SGrid = null;
+                    system.SelectedGrid = null;
             }
         }
 
@@ -153,8 +154,8 @@ namespace DeconstructorModSE
                 }
             }
 
-            if (system.SGrid != null)
-                selected.Add(new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(system.SGrid.CustomName), MyStringId.NullOrEmpty, system.SGrid));
+            if (system.SelectedGrid != null)
+                selected.Add(new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(system.SelectedGrid.CustomName), MyStringId.NullOrEmpty, system.SelectedGrid));
         }
 
         private static void Slider_setter(IMyTerminalBlock block, float value)

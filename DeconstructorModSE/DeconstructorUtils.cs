@@ -70,7 +70,7 @@ namespace DeconstructorModSE
             TempItems.Clear();
         }
 
-        public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime)
+        public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime, bool calcEff = true)
         {
             totalTime = 0;
             var Blocks = new List<IMySlimBlock>();
@@ -97,7 +97,10 @@ namespace DeconstructorModSE
                 totalTime += grindTime * block.BuildLevelRatio;
             }
 
-            totalTime *= (100.0f - MyBlock.Settings.Efficiency) / 100.0f;
+            if (calcEff)
+                totalTime *= (100.0f - MyBlock.Settings.Efficiency) / 100.0f;
+            else
+                totalTime *= 100.0f / 100.0f;
         }
 
         public static void SpawnItems(IMyInventory MyInventory, ref List<MyObjectBuilder_InventoryItem> Items)

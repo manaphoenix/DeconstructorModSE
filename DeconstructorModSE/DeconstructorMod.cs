@@ -27,14 +27,24 @@ namespace DeconstructorModSE
         public const float Efficiency_Max = 99;
         public const float Range = 150;
         public const float Power = 0.002f; //in MW
-        public const int SETTINGS_CHANGED_COUNTDOWN = (60 * 1) / 10; // div by 10 because it runs in update10
+        public const int SETTINGS_CHANGED_COUNTDOWN = 10; // div by 10 because it runs in update10
         public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
         public readonly DeconstructorBlockSettings Settings = new DeconstructorBlockSettings();
         IMyShipGrinder deconstructor;
-       
+
         IMyInventory MyInventory;
         public List<IMyCubeGrid> Grids;
-        public IMyCubeGrid SGrid;
+        private IMyCubeGrid _SGrid;
+        public IMyCubeGrid SelectedGrid { get { return _SGrid; } set 
+            {
+                if (_SGrid != value)
+                {
+                    _SGrid = value;
+                    GetGrindTime(value);
+                    DeconstructorSession.Instance.TimerBox.UpdateVisual();
+                }
+            }
+        }
         MyResourceSinkComponent sink;
         int syncCountdown;
         DeconstructorSession Mod => DeconstructorSession.Instance;
@@ -44,10 +54,17 @@ namespace DeconstructorModSE
             get { return Settings.Efficiency; }
             set
             {
-                Settings.Efficiency = MathHelper.Clamp(value, Efficiency_Min, Efficiency_Max);
-
-                SettingsChanged();
-                
+                var val = MathHelper.Clamp(value, Efficiency_Min, Efficiency_Max);
+                if (Settings.Efficiency != val)
+                {
+                    Settings.Efficiency = val;
+                    SettingsChanged();
+                    if (_SGrid != null)
+                    {
+                        GetGrindTime(_SGrid);
+                        DeconstructorSession.Instance.TimerBox.UpdateVisual();
+                    }
+                }
             }
         }
 
@@ -68,10 +85,20 @@ namespace DeconstructorModSE
             }
         }
 
+        public float GetPowerRequired()
+        {
+            if (Settings.IsGrinding) return sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId);
+            if (_SGrid == null) return Power;
+
+            float time = 0;
+            Utils.GetGrindTime(this, ref _SGrid, ref time, false);
+            var removedTime = time / (1 - (Efficiency / 100));
+            return Power + (removedTime / 1000 / 60 / 2);
+        }
+
         public void SetPower(bool Working = false)
         {
-            var removedTime = Settings.Time / (1 - (Efficiency / 100));
-            var powerRequired = Power + (removedTime / 1000 / 60 / 2);
+            var powerRequired = GetPowerRequired();
             if (Working) {
                 sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, powerRequired); // In MW
                 sink.SetMaxRequiredInputByType(MyResourceDistributorComponent.ElectricityId, powerRequired); // In MW
@@ -86,15 +113,15 @@ namespace DeconstructorModSE
         public void DeconstructGrid(IMyCubeGrid SelectedGrid)
         {
             if (SelectedGrid == null || Settings.Items.Count > 0) return;
+            SetPower(true);
             Settings.IsGrinding = true;
             Utils.DeconstructGrid(MyInventory, ref SelectedGrid, ref Settings.Items);
             SelectedGrid.Delete();
-            SetPower(true);
         }
 
-        public void GetGrindTime(IMyCubeGrid SelectedGrid)
+        public void GetGrindTime(IMyCubeGrid SelectedGrid, bool calcEff = true)
         {
-            Utils.GetGrindTime(this, ref SelectedGrid, ref Settings.Time);
+            Utils.GetGrindTime(this, ref SelectedGrid, ref Settings.Time, calcEff);
         }
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
@@ -132,7 +159,7 @@ namespace DeconstructorModSE
         {
             if (Settings.Time > 0)
             {
-                info.Append($"Power Required: {Math.Round(sink.RequiredInputByType(MyResourceDistributorComponent.ElectricityId)*1000,2)}Kw\n");
+                info.Append($"Power Required: {Math.Round(GetPowerRequired()*1000,2)}Kw\n");
             }
         }
 
@@ -220,7 +247,7 @@ namespace DeconstructorModSE
                 if (Utils.Grids == null || Grids == null) return;
                 deconstructor.RefreshCustomInfo();
 
-                if (Settings.Time <= 0)
+                if (Settings.Time <= 0 && Settings.IsGrinding)
                 {
                     if (Settings.Items.Count > 0)
                     {
