@@ -230,11 +230,6 @@ namespace DeconstructorModSE
                     else
                     {
                         Settings.IsGrinding = false;
-                        DeconstructorSession.Instance.DeconButton.UpdateVisual();
-                        DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
-                        DeconstructorSession.Instance.GridList.UpdateVisual();
-                        DeconstructorSession.Instance.ComponentList.UpdateVisual();
-                        DeconstructorSession.Instance.TimerBox.UpdateVisual();
                         SetPower();
                     }
                 } else
@@ -278,6 +273,7 @@ namespace DeconstructorModSE
                 if (Settings.Time <= 0)
                 {
                     Settings.Time = 0;
+                    DeconstructorSession.Instance.TimerBox.UpdateVisual();
                     NeedsUpdate = MyEntityUpdateEnum.EACH_100TH_FRAME;
                 }
             }
