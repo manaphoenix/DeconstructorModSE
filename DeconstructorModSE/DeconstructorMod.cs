@@ -230,6 +230,11 @@ namespace DeconstructorModSE
                     else
                     {
                         Settings.IsGrinding = false;
+                        DeconstructorSession.Instance.DeconButton.UpdateVisual();
+                        DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
+                        DeconstructorSession.Instance.GridList.UpdateVisual();
+                        DeconstructorSession.Instance.ComponentList.UpdateVisual();
+                        DeconstructorSession.Instance.TimerBox.UpdateVisual();
                         SetPower();
                     }
                 } else
