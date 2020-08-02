@@ -131,8 +131,9 @@ namespace DeconstructorModSE
             var system = GetBlock(block);
             if (system != null && system.Settings.Items != null && system.Settings.Items.Count > 0)
             {
-                foreach (var item in system.Settings.Items)
+                for (var i = system.Settings.Items.Count-1; i > -1; i--)
                 {
+                    var item = system.Settings.Items[i];
                     var name = item.PhysicalContent.SubtypeName + ": " + item.Amount;
                     var BoxItem = new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(name.ToString()), MyStringId.NullOrEmpty, null);
                     items.Add(BoxItem);
