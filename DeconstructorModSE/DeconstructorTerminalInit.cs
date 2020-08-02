@@ -106,8 +106,8 @@ namespace DeconstructorModSE
             {
                 DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SGrid.EntityId, system.Settings.Efficiency);
                 DeconstructorSession.Instance.DeconButton.UpdateVisual();
+                DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
                 DeconstructorSession.Instance.GridList.UpdateVisual();
-                DeconstructorSession.Instance.TimerBox.UpdateVisual();
                 DeconstructorSession.Instance.ComponentList.UpdateVisual();
             }
         }
