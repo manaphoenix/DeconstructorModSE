@@ -16,6 +16,9 @@ using Sandbox.ModAPI.Interfaces.Terminal;
 using System.Runtime.CompilerServices;
 using VRage.Game;
 using System.Threading;
+using Sandbox.Game.Entities.Interfaces;
+using Sandbox.Common.ObjectBuilders.Definitions;
+using VRage.Game.ObjectBuilders.Definitions;
 
 namespace DeconstructorModSE
 {
@@ -33,6 +36,7 @@ namespace DeconstructorModSE
         IMyShipGrinder deconstructor;
 
         IMyInventory MyInventory;
+        Sandbox.ModAPI.IMyGasTank tank;
         public List<IMyCubeGrid> Grids;
         private IMyCubeGrid _SGrid;
         public IMyCubeGrid SelectedGrid { get { return _SGrid; } set 
@@ -137,6 +141,15 @@ namespace DeconstructorModSE
                 DeconstructorTerminalInit._TerminalInit = true;
                 DeconstructorTerminalInit.InitControls<IMyShipGrinder>();
             }
+
+            /*
+            var t = new MyObjectBuilder_GasTankDefinition();
+            t.Capacity = 10000;
+            if (t.StoredGasId.IsNull())
+            {
+                t.StoredGasId = new MyDefinitionId(typeof(MyObjectBuilder_GasProperties), "Oxygen");
+            }
+            */
 
             deconstructor = (IMyShipGrinder)Entity;
             if (deconstructor.CubeGrid?.Physics == null) // ignore projected and other non-physical grids
