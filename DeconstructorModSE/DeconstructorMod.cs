@@ -280,18 +280,18 @@ namespace DeconstructorModSE
                 }
 
                 Grids.Clear();
+                var Blocks = new List<IMySlimBlock>();
                 foreach (var grid in Utils.Grids)
                 {
-                    if (!grid.IsSameConstructAs(deconstructor.CubeGrid) 
-                        && (grid.GetPosition() - deconstructor.GetPosition()).Length() <= Range 
-                        && ((grid.SmallOwners.Contains(deconstructor.OwnerId) && grid.SmallOwners.Count == 1) || grid.SmallOwners.Count == 0)
-                    )
-                    {
-                        if (grid.Physics != null)
-                        {
-                            Grids.Add(grid);
-                        }
-                    }
+                    if (grid.IsSameConstructAs(deconstructor.CubeGrid)) return;
+                    if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) return;
+                    if (grid.Physics == null) return;
+                    grid.GetBlocks(Blocks, x => x.FatBlock is IMyShipController);
+
+                    var ct = Blocks.Where(x => x.FatBlock.OwnerId != deconstructor.OwnerId).Count();
+                    if (ct > 0) return;
+
+                    Grids.Add(grid);
                 }
             }
             else
