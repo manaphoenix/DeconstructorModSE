@@ -28,7 +28,7 @@ namespace DeconstructorModSE
         //Settings
         public const float Efficiency_Min = 0;
         public const float Efficiency_Max = 99;
-        public const float Range = 150;
+        public const float Range = 500;
         public const float Power = 0.002f; //in MW
         public const int SETTINGS_CHANGED_COUNTDOWN = 10; // div by 10 because it runs in update10
         public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
@@ -36,8 +36,7 @@ namespace DeconstructorModSE
         IMyShipGrinder deconstructor;
 
         IMyInventory MyInventory;
-        Sandbox.ModAPI.IMyGasTank tank;
-        public List<IMyCubeGrid> Grids;
+		public List<IMyCubeGrid> Grids;
         private IMyCubeGrid _SGrid;
         public IMyCubeGrid SelectedGrid { get { return _SGrid; } set 
             {
