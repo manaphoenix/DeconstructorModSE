@@ -286,6 +286,7 @@ namespace DeconstructorModSE
                     if (grid.IsSameConstructAs(deconstructor.CubeGrid)) return;
                     if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) return;
                     if (grid.Physics == null) return;
+                    
                     grid.GetBlocks(Blocks, (x) =>
                     {
                         if (x.FatBlock != null && x.FatBlock is IMyShipController && x.FatBlock.OwnerId != deconstructor.OwnerId) return true;
@@ -293,6 +294,7 @@ namespace DeconstructorModSE
                         return false;
                     });
                     if (Blocks.Count > 0) return;
+                    
 
                     Grids.Add(grid);
                 }
