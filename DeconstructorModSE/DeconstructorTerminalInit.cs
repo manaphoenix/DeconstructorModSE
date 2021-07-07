@@ -72,10 +72,10 @@ namespace DeconstructorModSE
 
 			DeconstructorSession.Instance.APIMethods = api.ToImmutable();
 
-			var p = MyAPIGateway.TerminalControls.CreateProperty<IReadOnlyDictionary<string, Delegate>, DeconstructorMod>("DeconstructorModAPI");
+			var p = MyAPIGateway.TerminalControls.CreateProperty<IReadOnlyDictionary<string, Delegate>, T>("DeconstructorModAPI");
 			p.Getter = (b) => DeconstructorSession.Instance.APIMethods;
 			p.Setter = (b, v) => { };
-			MyAPIGateway.TerminalControls.AddControl<DeconstructorMod>(p);
+			MyAPIGateway.TerminalControls.AddControl<T>(p);
 
 			DeconstructorSession.Instance.DeconButton = button;
 			DeconstructorSession.Instance.EfficiencySlider = efficiency;

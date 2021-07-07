@@ -138,6 +138,7 @@ namespace DeconstructorModSE
 			{
 				DeconstructorTerminalInit._TerminalInit = true;
 				DeconstructorTerminalInit.InitControls<IMyShipGrinder>();
+
 			}
 
 			/*
