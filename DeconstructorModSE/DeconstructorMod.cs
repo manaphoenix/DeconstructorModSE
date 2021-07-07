@@ -283,9 +283,9 @@ namespace DeconstructorModSE
                 var Blocks = new List<IMySlimBlock>();
                 foreach (var grid in Utils.Grids)
                 {
-                    if (grid.IsSameConstructAs(deconstructor.CubeGrid)) return;
-                    if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) return;
-                    if (grid.Physics == null) return;
+                    if (grid.IsSameConstructAs(deconstructor.CubeGrid)) continue;
+                    if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) continue;
+                    if (grid.Physics == null) continue;
                     
                     grid.GetBlocks(Blocks, (x) =>
                     {
@@ -293,7 +293,7 @@ namespace DeconstructorModSE
 
                         return false;
                     });
-                    if (Blocks.Count > 0) return;
+                    if (Blocks.Count > 0) continue;
                     
 
                     Grids.Add(grid);
