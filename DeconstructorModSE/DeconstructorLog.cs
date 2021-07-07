@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ParallelTasks;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ParallelTasks;
-using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -11,246 +11,251 @@ using VRage.Utils;
 
 namespace DeconstructorModSE
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, priority: int.MaxValue)]
-    public class DeconstructorLog : MySessionComponentBase
-    {
-        private static DeconstructorLog instance;
-        private static Handler handler;
-        private static bool unloaded = false;
+	[MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, priority: int.MaxValue)]
+	public class DeconstructorLog : MySessionComponentBase
+	{
+		private static DeconstructorLog instance;
+		private static Handler handler;
+		private static bool unloaded = false;
 
-        public const string FILE = "info.log";
-        private const int DEFAULT_TIME_INFO = 3000;
-        private const int DEFAULT_TIME_ERROR = 10000;
+		public const string FILE = "info.log";
+		private const int DEFAULT_TIME_INFO = 3000;
+		private const int DEFAULT_TIME_ERROR = 10000;
 
-        /// <summary>
-        /// Print the generic error info.
-        /// (For use in <see cref="Log.Error(string, string, int)"/>'s 2nd arg)
-        /// </summary>
-        public const string PRINT_ERROR = "<err>";
+		/// <summary>
+		/// Print the generic error info.
+		/// (For use in <see cref="Log.Error(string, string, int)"/>'s 2nd arg)
+		/// </summary>
+		public const string PRINT_ERROR = "<err>";
 
-        /// <summary>
-        /// Prints the message instead of the generic generated error info.
-        /// (For use in <see cref="Log.Error(string, string, int)"/>'s 2nd arg)
-        /// </summary>
-        public const string PRINT_MSG = "<msg>";
+		/// <summary>
+		/// Prints the message instead of the generic generated error info.
+		/// (For use in <see cref="Log.Error(string, string, int)"/>'s 2nd arg)
+		/// </summary>
+		public const string PRINT_MSG = "<msg>";
 
-        #region Handling of handler
-        public override void LoadData()
-        {
-            instance = this;
-            EnsureHandlerCreated();
-            handler.Init(this);
-        }
+		#region Handling of handler
 
-        protected override void UnloadData()
-        {
-            instance = null;
+		public override void LoadData()
+		{
+			instance = this;
+			EnsureHandlerCreated();
+			handler.Init(this);
+		}
 
-            if (handler != null && handler.AutoClose)
-            {
-                Unload();
-            }
-        }
+		protected override void UnloadData()
+		{
+			instance = null;
 
-        private void Unload()
-        {
-            try
-            {
-                if (unloaded)
-                    return;
+			if (handler != null && handler.AutoClose)
+			{
+				Unload();
+			}
+		}
 
-                unloaded = true;
-                handler?.Close();
-                handler = null;
-            }
-            catch (Exception e)
-            {
-                MyLog.Default.WriteLine($"Error in {ModContext.ModName} ({ModContext.ModId}): {e.Message}\n{e.StackTrace}");
-                throw new ModCrashedException(e, ModContext);
-            }
-        }
+		private void Unload()
+		{
+			try
+			{
+				if (unloaded)
+					return;
 
-        private static void EnsureHandlerCreated()
-        {
-            if (unloaded)
-                throw new Exception("Digi.Log accessed after it was unloaded!");
+				unloaded = true;
+				handler?.Close();
+				handler = null;
+			}
+			catch (Exception e)
+			{
+				MyLog.Default.WriteLine($"Error in {ModContext.ModName} ({ModContext.ModId}): {e.Message}\n{e.StackTrace}");
+				throw new ModCrashedException(e, ModContext);
+			}
+		}
 
-            if (handler == null)
-                handler = new Handler();
-        }
+		private static void EnsureHandlerCreated()
+		{
+			if (unloaded)
+				throw new Exception("Digi.Log accessed after it was unloaded!");
 
-        public static void Close()
-        {
-            instance?.Unload();
-        }
+			if (handler == null)
+				handler = new Handler();
+		}
 
-        public static bool AutoClose
-        {
-            get
-            {
-                EnsureHandlerCreated();
-                return handler.AutoClose;
-            }
-            set
-            {
-                EnsureHandlerCreated();
-                handler.AutoClose = value;
-            }
-        }
+		public static void Close()
+		{
+			instance?.Unload();
+		}
 
-        public static string ModName
-        {
-            get
-            {
-                EnsureHandlerCreated();
-                return handler.ModName;
-            }
-            set
-            {
-                EnsureHandlerCreated();
-                handler.ModName = value;
-            }
-        }
+		public static bool AutoClose
+		{
+			get
+			{
+				EnsureHandlerCreated();
+				return handler.AutoClose;
+			}
+			set
+			{
+				EnsureHandlerCreated();
+				handler.AutoClose = value;
+			}
+		}
 
-        public static ulong WorkshopId => handler?.WorkshopId ?? 0;
+		public static string ModName
+		{
+			get
+			{
+				EnsureHandlerCreated();
+				return handler.ModName;
+			}
+			set
+			{
+				EnsureHandlerCreated();
+				handler.ModName = value;
+			}
+		}
 
-        public static void IncreaseIndent()
-        {
-            EnsureHandlerCreated();
-            handler.IncreaseIndent();
-        }
+		public static ulong WorkshopId => handler?.WorkshopId ?? 0;
 
-        public static void DecreaseIndent()
-        {
-            EnsureHandlerCreated();
-            handler.DecreaseIndent();
-        }
+		public static void IncreaseIndent()
+		{
+			EnsureHandlerCreated();
+			handler.IncreaseIndent();
+		}
 
-        public static void ResetIndent()
-        {
-            EnsureHandlerCreated();
-            handler.ResetIndent();
-        }
+		public static void DecreaseIndent()
+		{
+			EnsureHandlerCreated();
+			handler.DecreaseIndent();
+		}
 
-        public static void Error(Exception exception, string printText = PRINT_ERROR, int printTimeMs = DEFAULT_TIME_ERROR)
-        {
-            EnsureHandlerCreated();
-            handler.Error(exception.ToString(), printText, printTimeMs);
-        }
+		public static void ResetIndent()
+		{
+			EnsureHandlerCreated();
+			handler.ResetIndent();
+		}
 
-        public static void Error(string message, string printText = PRINT_ERROR, int printTimeMs = DEFAULT_TIME_ERROR)
-        {
-            EnsureHandlerCreated();
-            handler.Error(message, printText, printTimeMs);
-        }
+		public static void Error(Exception exception, string printText = PRINT_ERROR, int printTimeMs = DEFAULT_TIME_ERROR)
+		{
+			EnsureHandlerCreated();
+			handler.Error(exception.ToString(), printText, printTimeMs);
+		}
 
-        public static void Info(string message, string printText = null, int printTimeMs = DEFAULT_TIME_INFO)
-        {
-            EnsureHandlerCreated();
-            handler.Info(message, printText, printTimeMs);
-        }
+		public static void Error(string message, string printText = PRINT_ERROR, int printTimeMs = DEFAULT_TIME_ERROR)
+		{
+			EnsureHandlerCreated();
+			handler.Error(message, printText, printTimeMs);
+		}
 
-        public static bool TaskHasErrors(Task task, string taskName)
-        {
-            EnsureHandlerCreated();
+		public static void Info(string message, string printText = null, int printTimeMs = DEFAULT_TIME_INFO)
+		{
+			EnsureHandlerCreated();
+			handler.Info(message, printText, printTimeMs);
+		}
 
-            if (task.Exceptions != null && task.Exceptions.Length > 0)
-            {
-                foreach (var e in task.Exceptions)
-                {
-                    Error($"Error in {taskName} thread!\n{e}");
-                }
+		public static bool TaskHasErrors(Task task, string taskName)
+		{
+			EnsureHandlerCreated();
 
-                return true;
-            }
+			if (task.Exceptions != null && task.Exceptions.Length > 0)
+			{
+				foreach (var e in task.Exceptions)
+				{
+					Error($"Error in {taskName} thread!\n{e}");
+				}
 
-            return false;
-        }
-        #endregion
+				return true;
+			}
 
-        private class Handler
-        {
-            private DeconstructorLog sessionComp;
-            private string modName = string.Empty;
+			return false;
+		}
 
-            private TextWriter writer;
-            private int indent = 0;
-            private string errorPrintText;
+		#endregion Handling of handler
 
-            private IMyHudNotification notifyInfo;
-            private IMyHudNotification notifyError;
+		private class Handler
+		{
+			private DeconstructorLog sessionComp;
+			private string modName = string.Empty;
 
-            private StringBuilder sb = new StringBuilder(64);
+			private TextWriter writer;
+			private int indent = 0;
+			private string errorPrintText;
 
-            private List<string> preInitMessages;
+			private IMyHudNotification notifyInfo;
+			private IMyHudNotification notifyError;
 
-            public bool AutoClose { get; set; } = true;
+			private StringBuilder sb = new StringBuilder(64);
 
-            public ulong WorkshopId { get; private set; } = 0;
+			private List<string> preInitMessages;
 
-            public string ModName
-            {
-                get
-                {
-                    return modName;
-                }
-                set
-                {
-                    modName = value;
-                    ComputeErrorPrintText();
-                }
-            }
+			public bool AutoClose { get; set; } = true;
 
-            public Handler()
-            {
-            }
+			public ulong WorkshopId { get; private set; } = 0;
 
-            public void Init(DeconstructorLog sessionComp)
-            {
-                if (writer != null)
-                    return; // already initialized
+			public string ModName
+			{
+				get
+				{
+					return modName;
+				}
+				set
+				{
+					modName = value;
+					ComputeErrorPrintText();
+				}
+			}
 
-                if (MyAPIGateway.Utilities == null)
-                {
-                    Error("MyAPIGateway.Utilities is NULL !");
-                    return;
-                }
+			public Handler()
+			{
+			}
 
-                this.sessionComp = sessionComp;
+			public void Init(DeconstructorLog sessionComp)
+			{
+				if (writer != null)
+					return; // already initialized
 
-                if (string.IsNullOrWhiteSpace(ModName))
-                    ModName = sessionComp.ModContext.ModName;
+				if (MyAPIGateway.Utilities == null)
+				{
+					Error("MyAPIGateway.Utilities is NULL !");
+					return;
+				}
 
-                WorkshopId = GetWorkshopID(sessionComp.ModContext.ModId);
+				this.sessionComp = sessionComp;
 
-                writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(FILE, typeof(DeconstructorLog));
+				if (string.IsNullOrWhiteSpace(ModName))
+					ModName = sessionComp.ModContext.ModName;
 
-                #region Pre-init messages
-                if (preInitMessages != null)
-                {
-                    string warning = $"{modName} WARNING: there are log messages before the mod initialized!";
+				WorkshopId = GetWorkshopID(sessionComp.ModContext.ModId);
 
-                    Info($"--- pre-init messages ---");
+				writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(FILE, typeof(DeconstructorLog));
 
-                    foreach (var msg in preInitMessages)
-                    {
-                        Info(msg, warning);
-                    }
+				#region Pre-init messages
 
-                    Info("--- end pre-init messages ---");
+				if (preInitMessages != null)
+				{
+					string warning = $"{modName} WARNING: there are log messages before the mod initialized!";
 
-                    preInitMessages = null;
-                }
-                #endregion
+					Info($"--- pre-init messages ---");
 
-                #region Init message
-                sb.Clear();
-                sb.Append("Initialized");
-                sb.Append("\nGameMode=").Append(MyAPIGateway.Session.SessionSettings.GameMode);
-                sb.Append("\nOnlineMode=").Append(MyAPIGateway.Session.SessionSettings.OnlineMode);
-                sb.Append("\nServer=").Append(MyAPIGateway.Session.IsServer);
-                sb.Append("\nDS=").Append(MyAPIGateway.Utilities.IsDedicated);
-                sb.Append("\nDefined=");
+					foreach (var msg in preInitMessages)
+					{
+						Info(msg, warning);
+					}
+
+					Info("--- end pre-init messages ---");
+
+					preInitMessages = null;
+				}
+
+				#endregion Pre-init messages
+
+				#region Init message
+
+				sb.Clear();
+				sb.Append("Initialized");
+				sb.Append("\nGameMode=").Append(MyAPIGateway.Session.SessionSettings.GameMode);
+				sb.Append("\nOnlineMode=").Append(MyAPIGateway.Session.SessionSettings.OnlineMode);
+				sb.Append("\nServer=").Append(MyAPIGateway.Session.IsServer);
+				sb.Append("\nDS=").Append(MyAPIGateway.Utilities.IsDedicated);
+				sb.Append("\nDefined=");
 
 #if STABLE
                 sb.Append("STABLE, ");
@@ -261,7 +266,7 @@ namespace DeconstructorModSE
 #endif
 
 #if DEBUG
-                sb.Append("DEBUG, ");
+				sb.Append("DEBUG, ");
 #endif
 
 #if BRANCH_STABLE
@@ -276,147 +281,148 @@ namespace DeconstructorModSE
                 sb.Append("BRANCH_UNKNOWN, ");
 #endif
 
-                Info(sb.ToString());
-                sb.Clear();
-                #endregion
-            }
+				Info(sb.ToString());
+				sb.Clear();
 
-            public void Close()
-            {
-                if (writer != null)
-                {
-                    Info("Unloaded.");
+				#endregion Init message
+			}
 
-                    writer.Flush();
-                    writer.Close();
-                    writer = null;
-                }
-            }
+			public void Close()
+			{
+				if (writer != null)
+				{
+					Info("Unloaded.");
 
-            private void ComputeErrorPrintText()
-            {
-                errorPrintText = $"[ {modName} ERROR, report contents of: %AppData%/SpaceEngineers/Storage/{MyAPIGateway.Utilities.GamePaths.ModScopeName}/{FILE} ]";
-            }
+					writer.Flush();
+					writer.Close();
+					writer = null;
+				}
+			}
 
-            public void IncreaseIndent()
-            {
-                indent++;
-            }
+			private void ComputeErrorPrintText()
+			{
+				errorPrintText = $"[ {modName} ERROR, report contents of: %AppData%/SpaceEngineers/Storage/{MyAPIGateway.Utilities.GamePaths.ModScopeName}/{FILE} ]";
+			}
 
-            public void DecreaseIndent()
-            {
-                if (indent > 0)
-                    indent--;
-            }
+			public void IncreaseIndent()
+			{
+				indent++;
+			}
 
-            public void ResetIndent()
-            {
-                indent = 0;
-            }
+			public void DecreaseIndent()
+			{
+				if (indent > 0)
+					indent--;
+			}
 
-            public void Error(string message, string printText = PRINT_ERROR, int printTime = DEFAULT_TIME_ERROR)
-            {
-                MyLog.Default.WriteLineAndConsole(modName + " error/exception: " + message); // write to game's log
+			public void ResetIndent()
+			{
+				indent = 0;
+			}
 
-                LogMessage(message, "ERROR: "); // write to custom log
+			public void Error(string message, string printText = PRINT_ERROR, int printTime = DEFAULT_TIME_ERROR)
+			{
+				MyLog.Default.WriteLineAndConsole(modName + " error/exception: " + message); // write to game's log
 
-                if (printText != null) // printing to HUD is optional
-                    ShowHudMessage(ref notifyError, message, printText, printTime, MyFontEnum.Red);
-            }
+				LogMessage(message, "ERROR: "); // write to custom log
 
-            public void Info(string message, string printText = null, int printTime = DEFAULT_TIME_INFO)
-            {
-                LogMessage(message); // write to custom log
+				if (printText != null) // printing to HUD is optional
+					ShowHudMessage(ref notifyError, message, printText, printTime, MyFontEnum.Red);
+			}
 
-                if (printText != null) // printing to HUD is optional
-                    ShowHudMessage(ref notifyInfo, message, printText, printTime, MyFontEnum.White);
-            }
+			public void Info(string message, string printText = null, int printTime = DEFAULT_TIME_INFO)
+			{
+				LogMessage(message); // write to custom log
 
-            private void ShowHudMessage(ref IMyHudNotification notify, string message, string printText, int printTime, string font)
-            {
-                if (printText == null)
-                    return;
+				if (printText != null) // printing to HUD is optional
+					ShowHudMessage(ref notifyInfo, message, printText, printTime, MyFontEnum.White);
+			}
 
-                try
-                {
-                    if (MyAPIGateway.Utilities != null && !MyAPIGateway.Utilities.IsDedicated)
-                    {
-                        if (printText == PRINT_ERROR)
-                            printText = errorPrintText;
-                        else if (printText == PRINT_MSG)
-                            printText = $"[ {modName} ERROR: {message} ]";
+			private void ShowHudMessage(ref IMyHudNotification notify, string message, string printText, int printTime, string font)
+			{
+				if (printText == null)
+					return;
 
-                        if (notify == null)
-                        {
-                            notify = MyAPIGateway.Utilities.CreateNotification(printText, printTime, font);
-                        }
-                        else
-                        {
-                            notify.Text = printText;
-                            notify.AliveTime = printTime;
-                            notify.ResetAliveTime();
-                        }
+				try
+				{
+					if (MyAPIGateway.Utilities != null && !MyAPIGateway.Utilities.IsDedicated)
+					{
+						if (printText == PRINT_ERROR)
+							printText = errorPrintText;
+						else if (printText == PRINT_MSG)
+							printText = $"[ {modName} ERROR: {message} ]";
 
-                        notify.Show();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Info("ERROR: Could not send notification to local client: " + e);
-                    MyLog.Default.WriteLineAndConsole(modName + " logger error/exception: Could not send notification to local client: " + e);
-                }
-            }
+						if (notify == null)
+						{
+							notify = MyAPIGateway.Utilities.CreateNotification(printText, printTime, font);
+						}
+						else
+						{
+							notify.Text = printText;
+							notify.AliveTime = printTime;
+							notify.ResetAliveTime();
+						}
 
-            private void LogMessage(string message, string prefix = null)
-            {
-                try
-                {
-                    sb.Clear();
-                    sb.Append(DateTime.Now.ToString("[HH:mm:ss] "));
+						notify.Show();
+					}
+				}
+				catch (Exception e)
+				{
+					Info("ERROR: Could not send notification to local client: " + e);
+					MyLog.Default.WriteLineAndConsole(modName + " logger error/exception: Could not send notification to local client: " + e);
+				}
+			}
 
-                    if (writer == null)
-                        sb.Append("(PRE-INIT) ");
+			private void LogMessage(string message, string prefix = null)
+			{
+				try
+				{
+					sb.Clear();
+					sb.Append(DateTime.Now.ToString("[HH:mm:ss] "));
 
-                    for (int i = 0; i < indent; i++)
-                        sb.Append(' ', 4);
+					if (writer == null)
+						sb.Append("(PRE-INIT) ");
 
-                    if (prefix != null)
-                        sb.Append(prefix);
+					for (int i = 0; i < indent; i++)
+						sb.Append(' ', 4);
 
-                    sb.Append(message);
+					if (prefix != null)
+						sb.Append(prefix);
 
-                    if (writer == null)
-                    {
-                        if (preInitMessages == null)
-                            preInitMessages = new List<string>();
+					sb.Append(message);
 
-                        preInitMessages.Add(sb.ToString());
-                    }
-                    else
-                    {
-                        writer.WriteLine(sb);
-                        writer.Flush();
-                    }
+					if (writer == null)
+					{
+						if (preInitMessages == null)
+							preInitMessages = new List<string>();
 
-                    sb.Clear();
-                }
-                catch (Exception e)
-                {
-                    MyLog.Default.WriteLineAndConsole($"{modName} had an error while logging message = '{message}'\nLogger error: {e.Message}\n{e.StackTrace}");
-                }
-            }
+						preInitMessages.Add(sb.ToString());
+					}
+					else
+					{
+						writer.WriteLine(sb);
+						writer.Flush();
+					}
 
-            private ulong GetWorkshopID(string modId)
-            {
-                // NOTE workaround for MyModContext not having the actual workshop ID number.
-                foreach (var mod in MyAPIGateway.Session.Mods)
-                {
-                    if (mod.Name == modId)
-                        return mod.PublishedFileId;
-                }
+					sb.Clear();
+				}
+				catch (Exception e)
+				{
+					MyLog.Default.WriteLineAndConsole($"{modName} had an error while logging message = '{message}'\nLogger error: {e.Message}\n{e.StackTrace}");
+				}
+			}
 
-                return 0;
-            }
-        }
-    }
+			private ulong GetWorkshopID(string modId)
+			{
+				// NOTE workaround for MyModContext not having the actual workshop ID number.
+				foreach (var mod in MyAPIGateway.Session.Mods)
+				{
+					if (mod.Name == modId)
+						return mod.PublishedFileId;
+				}
+
+				return 0;
+			}
+		}
+	}
 }
