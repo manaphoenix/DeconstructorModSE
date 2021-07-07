@@ -1,6 +1,8 @@
 ﻿using DeconstructorModSE.Sync;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using System;
+using System.Collections.Immutable;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -19,6 +21,8 @@ namespace DeconstructorModSE
 		public IMyTerminalControlSlider EfficiencySlider { get; set; }
 		public IMyTerminalControlButton DeconButton { get; set; }
 		public IMyTerminalControlListbox ComponentList { get; set; }
+
+		public ImmutableDictionary<string, Delegate> APIMethods;
 
 		public override void LoadData()
 		{

@@ -2,6 +2,7 @@
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using VRage.Game.ModAPI;
@@ -64,6 +65,18 @@ namespace DeconstructorModSE
 			componentList.ListContent = ComponentList_content;
 			MyAPIGateway.TerminalControls.AddControl<T>(componentList);
 
+			var api = ImmutableDictionary.CreateBuilder<string, Delegate>();
+
+			api.Add("GetComponents", new Action<IMyTerminalBlock, List<VRage.Game.ModAPI.Ingame.MyInventoryItem>>(GetComponents));
+			// more...
+
+			DeconstructorSession.Instance.APIMethods = api.ToImmutable();
+
+			var p = MyAPIGateway.TerminalControls.CreateProperty<IReadOnlyDictionary<string, Delegate>, DeconstructorMod>("DeconstructorModAPI");
+			p.Getter = (b) => DeconstructorSession.Instance.APIMethods;
+			p.Setter = (b, v) => { };
+			MyAPIGateway.TerminalControls.AddControl<DeconstructorMod>(p);
+
 			DeconstructorSession.Instance.DeconButton = button;
 			DeconstructorSession.Instance.EfficiencySlider = efficiency;
 			DeconstructorSession.Instance.GridList = gridList;
@@ -72,6 +85,20 @@ namespace DeconstructorModSE
 		}
 
 		public static DeconstructorMod GetBlock(IMyTerminalBlock block) => block?.GameLogic?.GetAs<DeconstructorMod>();
+
+		private static void GetComponents(IMyTerminalBlock b, List<VRage.Game.ModAPI.Ingame.MyInventoryItem> items)
+		{
+			var system = GetBlock(b);
+			if (system == null) return;
+			if (items == null) return;
+
+			for (var i = system.Settings.Items.Count - 1; i > -1; i--)
+			{
+				var item = system.Settings.Items[i];
+				var InvItem = new VRage.Game.ModAPI.Ingame.MyInventoryItem(new VRage.Game.ModAPI.Ingame.MyItemType(item.TypeId, item.SubtypeId), item.ItemId, item.Amount);
+				items.Add(InvItem);
+			}
+		}
 
 		private static StringBuilder TextBoxGetter(IMyTerminalBlock b)
 		{
