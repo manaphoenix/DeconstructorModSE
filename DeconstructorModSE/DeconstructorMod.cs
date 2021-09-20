@@ -1,10 +1,13 @@
 ﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using VRage.Collections;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -43,7 +46,17 @@ namespace DeconstructorModSE
 			MyStringHash.GetOrCompute("OpenCockpitLarge"),
 			MyStringHash.GetOrCompute("OpenCockpitSmall"),
 			MyStringHash.GetOrCompute("SmallBlockCockpit"),
-			MyStringHash.GetOrCompute("SmallBlockCockpitIndustrial")
+			MyStringHash.GetOrCompute("SmallBlockCockpitIndustrial"),
+			MyStringHash.GetOrCompute("RoverCockpit"),
+			MyStringHash.GetOrCompute("BuggyCockpit"),
+			MyStringHash.GetOrCompute("LargeBlockBed"),
+			MyStringHash.GetOrCompute("SmallBlockRemoteControl"),
+			MyStringHash.GetOrCompute("LargeBlockRemoteControl"),
+			MyStringHash.GetOrCompute("LargeMedicalRoom"),
+			MyStringHash.GetOrCompute("LargeBlockCryoChamber"),
+			MyStringHash.GetOrCompute("SmallBlockCryoChamber"),
+			MyStringHash.GetOrCompute("SurvivalKitLarge"),
+			MyStringHash.GetOrCompute("SurvivalKit")
 		};
 
 		public IMyCubeGrid SelectedGrid
@@ -296,30 +309,33 @@ namespace DeconstructorModSE
 				}
 
 				Grids.Clear();
-				var Blocks = new List<IMySlimBlock>();
 				foreach (var grid in Utils.Grids)
 				{
 					if (grid.IsSameConstructAs(deconstructor.CubeGrid)) continue;
 					if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) continue;
 					if (grid.Physics == null) continue;
 
-					Blocks.Clear();
-					grid.GetBlocks(Blocks, SearchBlocks);
-					if (Blocks.Count > 0) continue;
+					foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
+					{
+						if (!SearchBlocks(block)) continue;
 
-					Grids.Add(grid);
+						Grids.Add(grid);
+					}
 				}
 			}
 			else
 				Grids.Clear();
 		}
 
-		private bool SearchBlocks(IMySlimBlock block)
+		private bool SearchBlocks(MyCubeBlock block)
 		{
-			if (block.FatBlock == null) return false;
-			var b = block.FatBlock;
-			if (!(b is IMyShipController) || b.OwnerId == deconstructor.OwnerId) return false;
-			return !ImportantSubTypes.Contains(MyStringHash.GetOrCompute(b.BlockDefinition.SubtypeId));
+			if (block == null) return false;
+			if (ImportantSubTypes.Contains(MyStringHash.GetOrCompute(block.BlockDefinition.Id.SubtypeName)))
+			{
+				return block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0;
+			}
+
+			return false;
 		}
 
 		public override void UpdateAfterSimulation()
