@@ -3,11 +3,13 @@ using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 using IMyShipGrinder = Sandbox.ModAPI.IMyShipGrinder;
 
@@ -30,6 +32,19 @@ namespace DeconstructorModSE
 		private IMyInventory MyInventory;
 		public List<IMyCubeGrid> Grids;
 		private IMyCubeGrid _SGrid;
+
+		private readonly HashSet<MyStringHash> ImportantSubTypes = new HashSet<MyStringHash>(MyStringHash.Comparer)
+		{
+			MyStringHash.GetOrCompute("CockpitOpen"),
+			MyStringHash.GetOrCompute("DBSmallBlockFighterCockpit"),
+			MyStringHash.GetOrCompute("LargeBlockCockpit"),
+			MyStringHash.GetOrCompute("LargeBlockCockpitIndustrial"),
+			MyStringHash.GetOrCompute("LargeBlockCockpitSeat"),
+			MyStringHash.GetOrCompute("OpenCockpitLarge"),
+			MyStringHash.GetOrCompute("OpenCockpitSmall"),
+			MyStringHash.GetOrCompute("SmallBlockCockpit"),
+			MyStringHash.GetOrCompute("SmallBlockCockpitIndustrial")
+		};
 
 		public IMyCubeGrid SelectedGrid
 		{
@@ -288,12 +303,8 @@ namespace DeconstructorModSE
 					if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) continue;
 					if (grid.Physics == null) continue;
 
-					grid.GetBlocks(Blocks, (x) =>
-					{
-						if (x.FatBlock != null && x.FatBlock is IMyShipController && x.FatBlock.OwnerId != deconstructor.OwnerId) return true;
-
-						return false;
-					});
+					Blocks.Clear();
+					grid.GetBlocks(Blocks, SearchBlocks);
 					if (Blocks.Count > 0) continue;
 
 					Grids.Add(grid);
@@ -301,6 +312,14 @@ namespace DeconstructorModSE
 			}
 			else
 				Grids.Clear();
+		}
+
+		private bool SearchBlocks(IMySlimBlock block)
+		{
+			if (block.FatBlock == null) return false;
+			var b = block.FatBlock;
+			if (!(b is IMyShipController) || b.OwnerId == deconstructor.OwnerId) return false;
+			return !ImportantSubTypes.Contains(MyStringHash.GetOrCompute(b.BlockDefinition.SubtypeId));
 		}
 
 		public override void UpdateAfterSimulation()
