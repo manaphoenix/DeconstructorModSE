@@ -1,4 +1,5 @@
 ﻿using Sandbox.Definitions;
+using Sandbox.Game.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using VRage;
@@ -6,6 +7,7 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 
 namespace DeconstructorModSE
 {
@@ -20,6 +22,19 @@ namespace DeconstructorModSE
 			Items.Clear();
 			var Blocks = new List<IMySlimBlock>();
 			SelectedGrid.GetBlocks(Blocks);
+
+			// get subgrids
+			var gridGroup = new List<IMyCubeGrid>();
+			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
+			var blockCount = Blocks.Count;
+			var addedCount = 0;
+			foreach (var grid in gridGroup)
+			{
+				if (grid.EntityId == SelectedGrid.EntityId)
+					continue;
+
+				grid.GetBlocks(Blocks);
+			}
 			MyObjectBuilder_PhysicalObject physicalObjBuilder;
 			MyPhysicalInventoryItem phys;
 			MyObjectBuilder_CubeBlock Obj;
@@ -73,6 +88,15 @@ namespace DeconstructorModSE
 			totalTime = 0;
 			var Blocks = new List<IMySlimBlock>();
 			SelectedGrid.GetBlocks(Blocks);
+			var gridGroup = new List<IMyCubeGrid>();
+			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
+			foreach (var grid in gridGroup)
+			{
+				if (grid.EntityId == SelectedGrid.EntityId)
+					continue;
+
+				grid.GetBlocks(Blocks);
+			}
 
 			float grindRatio = 0;
 			float integrity = 0;

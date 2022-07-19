@@ -2,6 +2,7 @@
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
+using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,29 +33,6 @@ namespace DeconstructorModSE
 		private IMyInventory MyInventory;
 		public List<IMyCubeGrid> Grids;
 		private IMyCubeGrid _SGrid;
-
-		private readonly HashSet<MyStringHash> ImportantSubTypes = new HashSet<MyStringHash>(MyStringHash.Comparer)
-		{
-			MyStringHash.GetOrCompute("CockpitOpen"),
-			MyStringHash.GetOrCompute("DBSmallBlockFighterCockpit"),
-			MyStringHash.GetOrCompute("LargeBlockCockpit"),
-			MyStringHash.GetOrCompute("LargeBlockCockpitIndustrial"),
-			MyStringHash.GetOrCompute("LargeBlockCockpitSeat"),
-			MyStringHash.GetOrCompute("OpenCockpitLarge"),
-			MyStringHash.GetOrCompute("OpenCockpitSmall"),
-			MyStringHash.GetOrCompute("SmallBlockCockpit"),
-			MyStringHash.GetOrCompute("SmallBlockCockpitIndustrial"),
-			MyStringHash.GetOrCompute("RoverCockpit"),
-			MyStringHash.GetOrCompute("BuggyCockpit"),
-			MyStringHash.GetOrCompute("LargeBlockBed"),
-			MyStringHash.GetOrCompute("SmallBlockRemoteControl"),
-			MyStringHash.GetOrCompute("LargeBlockRemoteControl"),
-			MyStringHash.GetOrCompute("LargeMedicalRoom"),
-			MyStringHash.GetOrCompute("LargeBlockCryoChamber"),
-			MyStringHash.GetOrCompute("SmallBlockCryoChamber"),
-			MyStringHash.GetOrCompute("SurvivalKitLarge"),
-			MyStringHash.GetOrCompute("SurvivalKit")
-		};
 
 		public IMyCubeGrid SelectedGrid
 		{
@@ -312,10 +290,24 @@ namespace DeconstructorModSE
 					if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > Range) continue;
 					if (grid.Physics == null) continue;
 
-					foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
-					{
-						if (!SearchBlocks(block)) continue;
+					var cubGrid = grid as MyCubeGrid;
+					if (cubGrid.GetBiggestGridInGroup() != cubGrid) continue;
 
+					var shouldAddGrid = true;
+
+					if (grid.BigOwners.Count > 0 || grid.SmallOwners.Count > 0)
+					{
+						foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
+						{
+							if (!SearchBlocks(block))
+							{
+								shouldAddGrid = false;
+								break;
+							}
+						}
+					}
+					if (shouldAddGrid || grid.BigOwners.Count == 1 && grid.SmallOwners.Count == 1)
+					{
 						Grids.Add(grid);
 					}
 				}
@@ -327,9 +319,10 @@ namespace DeconstructorModSE
 		private bool SearchBlocks(MyCubeBlock block)
 		{
 			if (block == null) return false;
-			if (ImportantSubTypes.Contains(MyStringHash.GetOrCompute(block.BlockDefinition.Id.SubtypeName)))
+			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
 			{
-				return block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0;
+				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
+					return true;
 			}
 
 			return false;

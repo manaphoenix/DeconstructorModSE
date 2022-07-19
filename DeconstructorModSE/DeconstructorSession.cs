@@ -1,4 +1,5 @@
 ﻿using DeconstructorModSE.Sync;
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
@@ -48,7 +49,7 @@ namespace DeconstructorModSE
 		private void EntityAdded(IMyEntity ent)
 		{
 			var grid = ent as IMyCubeGrid;
-
+			
 			if (grid != null)
 			{
 				Utils.Grids.Add(grid);
