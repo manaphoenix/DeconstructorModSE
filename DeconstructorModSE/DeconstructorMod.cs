@@ -121,6 +121,15 @@ namespace DeconstructorModSE
 			SetPower(true);
 			Settings.IsGrinding = true;
 			Utils.DeconstructGrid(MyInventory, ref SelectedGrid, ref Settings.Items);
+			var gridGroup = new List<IMyCubeGrid>();
+			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
+			foreach (var grid in gridGroup)
+			{
+				if (grid.EntityId == SelectedGrid.EntityId)
+					continue;
+
+				grid.Delete();
+			}
 			SelectedGrid.Delete();
 		}
 

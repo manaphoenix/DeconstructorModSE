@@ -26,8 +26,6 @@ namespace DeconstructorModSE
 			// get subgrids
 			var gridGroup = new List<IMyCubeGrid>();
 			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
-			var blockCount = Blocks.Count;
-			var addedCount = 0;
 			foreach (var grid in gridGroup)
 			{
 				if (grid.EntityId == SelectedGrid.EntityId)
