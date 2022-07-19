@@ -125,12 +125,12 @@ namespace DeconstructorModSE
 			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
 			foreach (var grid in gridGroup)
 			{
-				if (grid.EntityId == SelectedGrid.EntityId)
+				if (grid == SelectedGrid)
 					continue;
 
-				grid.Delete();
+				grid.Close();
 			}
-			SelectedGrid.Delete();
+			SelectedGrid.Close();
 		}
 
 		public void GetGrindTime(IMyCubeGrid SelectedGrid, bool calcEff = true)

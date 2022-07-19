@@ -28,7 +28,7 @@ namespace DeconstructorModSE
 			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
 			foreach (var grid in gridGroup)
 			{
-				if (grid.EntityId == SelectedGrid.EntityId)
+				if (grid == SelectedGrid)
 					continue;
 
 				grid.GetBlocks(Blocks);
@@ -83,18 +83,31 @@ namespace DeconstructorModSE
 
 		public static void GetGrindTime(DeconstructorMod MyBlock, ref IMyCubeGrid SelectedGrid, ref float totalTime, bool calcEff = true)
 		{
+			if (MyBlock == null || SelectedGrid == null)
+				return;
+
 			totalTime = 0;
 			var Blocks = new List<IMySlimBlock>();
 			SelectedGrid.GetBlocks(Blocks);
-			var gridGroup = new List<IMyCubeGrid>();
-			SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(gridGroup);
-			foreach (var grid in gridGroup)
+			var gridGroupGrids = new List<IMyCubeGrid>();
+			var gridGroup = SelectedGrid.GetGridGroup(GridLinkTypeEnum.Mechanical);
+			if (gridGroup != null)
 			{
-				if (grid.EntityId == SelectedGrid.EntityId)
-					continue;
+				gridGroup.GetGrids(gridGroupGrids);
+				MyLog.Default.WriteLine(gridGroupGrids.Count.ToString());
+				foreach (var grid in gridGroupGrids)
+				{
+					if (grid == SelectedGrid)
+					{
+						MyLog.Default.WriteLine("Grid is selected grid");
+						continue;
+					}
 
-				grid.GetBlocks(Blocks);
+					grid.GetBlocks(Blocks);
+				}
 			}
+			if (Blocks.Count == 0)
+				return;
 
 			float grindRatio = 0;
 			float integrity = 0;
