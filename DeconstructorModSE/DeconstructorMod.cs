@@ -10,7 +10,6 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
-using VRage.Utils;
 using VRageMath;
 using IMyShipGrinder = Sandbox.ModAPI.IMyShipGrinder;
 

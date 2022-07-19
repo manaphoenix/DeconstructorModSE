@@ -1,5 +1,4 @@
 ﻿using Sandbox.Definitions;
-using Sandbox.Game.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using VRage;
@@ -7,7 +6,6 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
-using VRage.Utils;
 
 namespace DeconstructorModSE
 {
@@ -94,12 +92,10 @@ namespace DeconstructorModSE
 			if (gridGroup != null)
 			{
 				gridGroup.GetGrids(gridGroupGrids);
-				MyLog.Default.WriteLine(gridGroupGrids.Count.ToString());
 				foreach (var grid in gridGroupGrids)
 				{
 					if (grid == SelectedGrid)
 					{
-						MyLog.Default.WriteLine("Grid is selected grid");
 						continue;
 					}
 
