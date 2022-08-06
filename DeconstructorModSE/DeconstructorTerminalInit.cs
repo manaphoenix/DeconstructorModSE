@@ -1,6 +1,7 @@
 ﻿using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces.Terminal;
+using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,8 +71,8 @@ namespace DeconstructorModSE
 
 			var api = ImmutableDictionary.CreateBuilder<string, Delegate>();
 
-			api.Add("GetComponents", new Action<IMyTerminalBlock, List<VRage.Game.ModAPI.Ingame.MyInventoryItem>>(GetComponents));
-			api.Add("CheckGrid", new Action<IMyTerminalBlock, string, string>(CheckGrid));
+			api.Add("GetComponents", new Action<Sandbox.ModAPI.Ingame.IMyTerminalBlock, List<VRage.Game.ModAPI.Ingame.MyInventoryItem>>(GetComponents));
+			api.Add("CheckGrid", new Action<Sandbox.ModAPI.Ingame.IMyTerminalBlock, string, StringBuilder>(CheckGrid));
 			// more...
 
 			DeconstructorSession.Instance.APIMethods = api.ToImmutable();
@@ -90,51 +91,80 @@ namespace DeconstructorModSE
 
 		public static DeconstructorMod GetBlock(IMyTerminalBlock block) => block?.GameLogic?.GetAs<DeconstructorMod>();
 
-		private static void CheckGrid(IMyTerminalBlock deconstructor, string gridName, string output)
+		private static void CheckGrid(Sandbox.ModAPI.Ingame.IMyTerminalBlock deconstructor, string gridName, StringBuilder output)
 		{
-			var system = GetBlock(deconstructor);
-			if (system == null) output = "block does not exist... how did you get this?";
+			var system = GetBlock((IMyTerminalBlock)deconstructor);
+			if (system == null) output.AppendLine("block does not exist... how did you get this?");
 			var grid = Utils.Grids.Where(x => x.DisplayName == gridName).First();
 			if (grid == null)
-				output = "Grid does not exist!";
+				output.AppendLine("Grid does not exist!");
 
 			if (grid.IsSameConstructAs(deconstructor.CubeGrid))
-				output = "Grid cannot be deconstructed because it is attached to the same grid as the block";
+				output.AppendLine("Grid cannot be deconstructed because it is attached to the same grid as the block");
 
 			if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > 500)
-				output = "Grid is too far away";
+				output.AppendLine("Grid is too far away");
 
 			if (grid.Physics == null)
-				output = "Grid does not exist!";
+				output.AppendLine("Grid does not exist!");
 
 			var cubGrid = grid as MyCubeGrid;
 			if (cubGrid.GetBiggestGridInGroup() != cubGrid)
-				output = "Grid is not the biggest grid in its group";
-
+				output.AppendLine("Grid is not the biggest grid in its group");
 
 			var bigOwners = grid.BigOwners;
 			var gridOwner = bigOwners.Count > 0 ? bigOwners[0] : long.MaxValue;
 			var relationship = gridOwner != long.MaxValue ? MyIDModule.GetRelationPlayerBlock(deconstructor.OwnerId, gridOwner, MyOwnershipShareModeEnum.Faction) : MyRelationsBetweenPlayerAndBlock.NoOwnership;
 
 			if (relationship == MyRelationsBetweenPlayerAndBlock.Enemies)
-				output = "Grid is owned by an enemy";
+				output.AppendLine("Grid is owned by an enemy");
 
 			if (gridOwner != deconstructor.OwnerId && relationship != MyRelationsBetweenPlayerAndBlock.FactionShare)
-				output = "Grid is not owned by you";
+				output.AppendLine("Grid is not owned by you");
 
-			output = "Can be Grinded!";
+			// if the grid is not factioned, check for owning all major blocks
+			foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
+			{
+				if (!SearchBlocks(block, (IMyTerminalBlock)deconstructor))
+				{
+					// if any block we care about is not owned by the grid owner, we don't want to add the grid
+					if (block == null)
+						output.AppendLine("Block was null?");
+					else
+						output.AppendLine("One or more of the important blocks is not owned by the grid owner");
+
+					break;
+				}
+			}
+
+			if (output.Length == 0)
+				output.AppendLine("Grid is valid");
 		}
 
-		private static void GetComponents(IMyTerminalBlock b, List<VRage.Game.ModAPI.Ingame.MyInventoryItem> items)
+		private static bool SearchBlocks(MyCubeBlock block, IMyTerminalBlock deconstructor)
 		{
-			var system = GetBlock(b);
+			if (block == null) return true;
+			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
+			{
+				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
+					return true;
+				else
+					return false;
+			}
+
+			return true;
+		}
+
+		private static void GetComponents(Sandbox.ModAPI.Ingame.IMyTerminalBlock b, List<VRage.Game.ModAPI.Ingame.MyInventoryItem> items)
+		{
+			var system = GetBlock((IMyTerminalBlock)b);
 			if (system == null) return;
 			if (items == null) return;
 
 			for (var i = system.Settings.Items.Count - 1; i > -1; i--)
 			{
 				var item = system.Settings.Items[i];
-				var InvItem = new VRage.Game.ModAPI.Ingame.MyInventoryItem(new VRage.Game.ModAPI.Ingame.MyItemType(item.TypeId, item.SubtypeId), item.ItemId, item.Amount);
+				var InvItem = new VRage.Game.ModAPI.Ingame.MyInventoryItem(item.PhysicalContent.GetId(), item.ItemId, item.Amount);
 				items.Add(InvItem);
 			}
 		}

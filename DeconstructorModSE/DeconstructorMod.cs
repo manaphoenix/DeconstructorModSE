@@ -334,14 +334,16 @@ namespace DeconstructorModSE
 
 		private bool SearchBlocks(MyCubeBlock block)
 		{
-			if (block == null) return false;
+			if (block == null) return true;
 			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
 			{
 				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
 					return true;
+				else
+					return false;
 			}
 
-			return false;
+			return true;
 		}
 
 		public override void UpdateAfterSimulation()
