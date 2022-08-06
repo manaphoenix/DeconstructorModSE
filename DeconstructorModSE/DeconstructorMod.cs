@@ -6,10 +6,12 @@ using SpaceEngineers.Game.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 using IMyShipGrinder = Sandbox.ModAPI.IMyShipGrinder;
 
@@ -302,19 +304,25 @@ namespace DeconstructorModSE
 					if (cubGrid.GetBiggestGridInGroup() != cubGrid) continue;
 
 					var shouldAddGrid = true;
+					var bigOwners = grid.BigOwners;
+					var gridOwner = bigOwners.Count > 0 ? bigOwners[0] : long.MaxValue;
+					var relationship = gridOwner != long.MaxValue ? MyIDModule.GetRelationPlayerBlock(deconstructor.OwnerId, gridOwner, MyOwnershipShareModeEnum.Faction) : MyRelationsBetweenPlayerAndBlock.NoOwnership;
 
-					if (grid.BigOwners.Count > 0 || grid.SmallOwners.Count > 0)
+					// if the grid is neutral or friendly or is Owned by the Block Owner, add it to the list, no reason to even check for the other rules...
+					if (relationship != MyRelationsBetweenPlayerAndBlock.NoOwnership && relationship != MyRelationsBetweenPlayerAndBlock.Owner && relationship != MyRelationsBetweenPlayerAndBlock.FactionShare)
 					{
+						// if the grid is not factioned, check for owning all major blocks
 						foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
 						{
 							if (!SearchBlocks(block))
 							{
+								// if any block we care about is not owned by the grid owner, we don't want to add the grid
 								shouldAddGrid = false;
 								break;
 							}
 						}
 					}
-					if (shouldAddGrid || grid.BigOwners.Count == 1 && grid.SmallOwners.Count == 1)
+					if (shouldAddGrid)
 					{
 						Grids.Add(grid);
 					}
