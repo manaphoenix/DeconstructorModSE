@@ -125,7 +125,7 @@ namespace DeconstructorModSE
 			// if the grid is not factioned, check for owning all major blocks
 			foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
 			{
-				if (!SearchBlocks(block, (IMyTerminalBlock)deconstructor))
+				if (!Utils.SearchBlocks(block, (IMyTerminalBlock)deconstructor))
 				{
 					// if any block we care about is not owned by the grid owner, we don't want to add the grid
 					if (block == null)
@@ -139,20 +139,6 @@ namespace DeconstructorModSE
 
 			if (output.Length == 0)
 				output.AppendLine("Grid is valid");
-		}
-
-		private static bool SearchBlocks(MyCubeBlock block, IMyTerminalBlock deconstructor)
-		{
-			if (block == null) return true;
-			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
-			{
-				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
-					return true;
-				else
-					return false;
-			}
-
-			return true;
 		}
 
 		private static void GetComponents(Sandbox.ModAPI.Ingame.IMyTerminalBlock b, List<VRage.Game.ModAPI.Ingame.MyInventoryItem> items)

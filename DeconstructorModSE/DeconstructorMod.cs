@@ -314,7 +314,7 @@ namespace DeconstructorModSE
 						// if the grid is not factioned, check for owning all major blocks
 						foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
 						{
-							if (!SearchBlocks(block))
+							if (!Utils.SearchBlocks(block, deconstructor))
 							{
 								// if any block we care about is not owned by the grid owner, we don't want to add the grid
 								shouldAddGrid = false;
@@ -330,20 +330,6 @@ namespace DeconstructorModSE
 			}
 			else
 				Grids.Clear();
-		}
-
-		private bool SearchBlocks(MyCubeBlock block)
-		{
-			if (block == null) return true;
-			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
-			{
-				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
-					return true;
-				else
-					return false;
-			}
-
-			return true;
 		}
 
 		public override void UpdateAfterSimulation()

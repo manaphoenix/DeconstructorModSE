@@ -1,4 +1,7 @@
 ﻿using Sandbox.Definitions;
+using Sandbox.Game.Entities;
+using Sandbox.ModAPI;
+using SpaceEngineers.Game.ModAPI;
 using System.Collections.Generic;
 using System.Linq;
 using VRage;
@@ -152,6 +155,20 @@ namespace DeconstructorModSE
 					}
 				}
 			}
+		}
+
+		public static bool SearchBlocks(MyCubeBlock block, IMyTerminalBlock deconstructor)
+		{
+			if (block == null) return true;
+			if (block is IMyCockpit || block is IMyMedicalRoom || block is IMyWarhead || block is IMyLargeTurretBase)
+			{
+				if (block.OwnerId == deconstructor.OwnerId || block.OwnerId == 0)
+					return true;
+				else
+					return false;
+			}
+
+			return true;
 		}
 
 		public static MyFixedPoint GetMaxAmountPossible(IMyInventory inv, MyObjectBuilder_InventoryItem Item)
