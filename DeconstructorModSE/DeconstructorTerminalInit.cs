@@ -96,131 +96,100 @@ namespace DeconstructorModSE
 		{
 			var system = GetBlock((IMyTerminalBlock)deconstructor);
 			if (system == null) output.AppendLine("block does not exist... how did you get this?");
-			var grid = Utils.Grids.Where(x => x.DisplayName == gridName).First();
-			if (grid == null)
-				output.AppendLine("Grid does not exist!");
 
-			if (grid.IsSameConstructAs(deconstructor.CubeGrid))
-				output.AppendLine("Grid cannot be deconstructed because it is attached to the same grid as the block");
+			var grid = Utils.Grids.FirstOrDefault(x => x.DisplayName == gridName);
+			if (grid == null) output.AppendLine("Grid does not exist!");
+
+			if (grid.IsSameConstructAs(deconstructor.CubeGrid) || grid.Physics == null)
+				output.AppendLine("Grid cannot be deconstructed because it is attached to the same grid as the block or does not exist!");
 
 			if ((grid.GetPosition() - deconstructor.GetPosition()).Length() > 500)
 				output.AppendLine("Grid is too far away");
 
-			if (grid.Physics == null)
-				output.AppendLine("Grid does not exist!");
-
 			var cubGrid = grid as MyCubeGrid;
-			if (cubGrid.GetBiggestGridInGroup() != cubGrid)
-				output.AppendLine("Grid is not the biggest grid in its group");
+			if (cubGrid == null || cubGrid.GetBiggestGridInGroup() != cubGrid)
+				output.AppendLine("Grid is not a valid cube grid or not the biggest grid in its group");
 
 			var bigOwners = grid.BigOwners;
 			var gridOwner = bigOwners.Count > 0 ? bigOwners[0] : long.MaxValue;
 			var relationship = gridOwner != long.MaxValue ? MyIDModule.GetRelationPlayerBlock(deconstructor.OwnerId, gridOwner, MyOwnershipShareModeEnum.Faction) : MyRelationsBetweenPlayerAndBlock.NoOwnership;
 
-			if (relationship == MyRelationsBetweenPlayerAndBlock.Enemies)
-				output.AppendLine("Grid is owned by an enemy");
+			if (relationship == MyRelationsBetweenPlayerAndBlock.Enemies || (gridOwner != deconstructor.OwnerId && relationship != MyRelationsBetweenPlayerAndBlock.FactionShare))
+				output.AppendLine("Grid is owned by an enemy or not owned by you");
 
-			if (gridOwner != deconstructor.OwnerId && relationship != MyRelationsBetweenPlayerAndBlock.FactionShare)
-				output.AppendLine("Grid is not owned by you");
+			if (((MyCubeGrid)grid).GetFatBlocks().Any(block => !Utils.SearchBlocks(block, (IMyTerminalBlock)deconstructor)))
+				output.AppendLine("One or more of the important blocks is not owned by the grid owner");
 
-			// if the grid is not factioned, check for owning all major blocks
-			foreach (var block in ((MyCubeGrid)grid).GetFatBlocks())
-			{
-				if (!Utils.SearchBlocks(block, (IMyTerminalBlock)deconstructor))
-				{
-					// if any block we care about is not owned by the grid owner, we don't want to add the grid
-					if (block == null)
-						output.AppendLine("Block was null?");
-					else
-						output.AppendLine("One or more of the important blocks is not owned by the grid owner");
-
-					break;
-				}
-			}
-
-			if (output.Length == 0)
-				output.AppendLine("Grid is valid");
+			output.AppendLine("Grid is valid");
 		}
 
 		private static void GetComponents(Sandbox.ModAPI.Ingame.IMyTerminalBlock b, List<VRage.Game.ModAPI.Ingame.MyInventoryItem> items)
 		{
 			var system = GetBlock((IMyTerminalBlock)b);
-			if (system == null) return;
-			if (items == null) return;
+			if (system == null || system.Settings.Items == null || items == null) return;
 
-			for (var i = system.Settings.Items.Count - 1; i > -1; i--)
+			foreach (var item in system.Settings.Items)
 			{
-				var item = system.Settings.Items[i];
-				var InvItem = new VRage.Game.ModAPI.Ingame.MyInventoryItem(item.PhysicalContent.GetId(), item.ItemId, item.Amount);
-				items.Add(InvItem);
+				items.Add(new VRage.Game.ModAPI.Ingame.MyInventoryItem(item.PhysicalContent.GetId(), item.ItemId, item.Amount));
 			}
 		}
 
 		private static StringBuilder TextBoxGetter(IMyTerminalBlock b)
 		{
 			var system = GetBlock(b);
-			if (system == null) return new StringBuilder();
-			var Builder = new StringBuilder();
-			if (system.Settings != null && system.Settings.Time > 0)
-			{
-				var time = TimeSpan.FromSeconds(system.Settings.Time);
-				return Builder.Append($"{time:hh'h 'mm'm 'ss's '}");
-			}
-			else
-			{
-				return Builder.Append("N/A");
-			}
+			if (system == null || system.Settings == null || system.Settings.Time <= 0)
+				return new StringBuilder("N/A");
+			var time = TimeSpan.FromSeconds(system.Settings.Time);
+			return new StringBuilder().Append($"{time:hh'h 'mm'm 'ss's '}");
 		}
 
 		private static bool VisibilityCheck(IMyTerminalBlock block)
 		{
-			return GetBlock(block) != null;
+			return GetBlock(block) is object;
 		}
 
 		private static bool EnabledCheck(IMyTerminalBlock block)
 		{
 			var system = GetBlock(block);
-			return system != null && !system.Settings.IsGrinding;
+			return system?.Settings != null && !system.Settings.IsGrinding;
 		}
 
 		private static void Button_action(IMyTerminalBlock block)
 		{
 			var system = GetBlock(block);
-			if (system != null && system.SelectedGrid != null)
+			if (system?.SelectedGrid != null)
 			{
 				DeconstructorSession.Instance.CachedPacketServer.Send(system.Entity.EntityId, system.SelectedGrid.EntityId, system.Settings.Efficiency);
-				DeconstructorSession.Instance.DeconButton.UpdateVisual();
-				DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
-				DeconstructorSession.Instance.GridList.UpdateVisual();
-				DeconstructorSession.Instance.ComponentList.UpdateVisual();
+				UpdateVisuals();
 			}
+		}
+
+		private static void UpdateVisuals()
+		{
+			DeconstructorSession.Instance.DeconButton.UpdateVisual();
+			DeconstructorSession.Instance.EfficiencySlider.UpdateVisual();
+			DeconstructorSession.Instance.GridList.UpdateVisual();
+			DeconstructorSession.Instance.ComponentList.UpdateVisual();
 		}
 
 		private static void List_selected(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> selected)
 		{
 			var system = GetBlock(block);
-			if (system != null && system.Grids != null && system.Grids.Count > 0)
+			if (system != null)
 			{
-				if (selected.Count > 0)
-				{
-					system.SelectedGrid = selected.First().UserData as IMyCubeGrid;
-				}
-				else
-					system.SelectedGrid = null;
+				system.SelectedGrid = selected.Count > 0 ? selected.First().UserData as IMyCubeGrid : null;
 			}
 		}
 
 		private static void ComponentList_content(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> items, List<MyTerminalControlListBoxItem> selected)
 		{
 			var system = GetBlock(block);
-			if (system != null && system.Settings.Items != null && system.Settings.Items.Count > 0)
+			if (system?.Settings.Items != null)
 			{
-				for (var i = system.Settings.Items.Count - 1; i > -1; i--)
+				foreach (var item in system.Settings.Items)
 				{
-					var item = system.Settings.Items[i];
-					var name = item.PhysicalContent.SubtypeName + ": " + item.Amount;
-					var BoxItem = new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(name.ToString()), MyStringId.NullOrEmpty, null);
-					items.Add(BoxItem);
+					var name = $"{item.PhysicalContent.SubtypeName}: {item.Amount}";
+					items.Add(new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(name), MyStringId.NullOrEmpty, null));
 				}
 			}
 		}
@@ -232,20 +201,23 @@ namespace DeconstructorModSE
 			{
 				foreach (var item in system.Grids)
 				{
-					var distanceFromDeconstructor = Math.Round((item.GetPosition() - system.Entity.GetPosition()).Length(), 2);
-					var listBoxString = MyStringId.GetOrCompute($"{item.CustomName} - {distanceFromDeconstructor}m");
-
-					items.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), item));
+					AddGridItem(items, item, system);
 				}
 
 				if (system.SelectedGrid != null)
 				{
-					var distanceFromDeconstructor = Math.Round((system.SelectedGrid.GetPosition() - system.Entity.GetPosition()).Length(), 2);
-					var listBoxString = MyStringId.GetOrCompute($"{system.SelectedGrid.CustomName} - {distanceFromDeconstructor}m");
-
-					selected.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), system.SelectedGrid));
+					AddGridItem(selected, system.SelectedGrid, system);
 				}
 			}
+		}
+
+		private static void AddGridItem(List<MyTerminalControlListBoxItem> list, IMyCubeGrid grid, DeconstructorMod system)
+		{
+			var distanceFromDeconstructor = Math.Round((grid.GetPosition() - system.Entity.GetPosition()).Length(), 2);
+			var listBoxString = MyStringId.GetOrCompute($"{grid.CustomName} - {distanceFromDeconstructor}m");
+			var gridPCU = ((MyCubeGrid)grid).BlocksPCU;
+
+			list.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m | {gridPCU}PCU"), grid));
 		}
 
 		private static void Slider_setter(IMyTerminalBlock block, float value)
@@ -259,19 +231,13 @@ namespace DeconstructorModSE
 
 		private static float Slider_getter(IMyTerminalBlock block)
 		{
-			var system = GetBlock(block);
-			if (system != null)
-			{
-				return system.Efficiency;
-			}
-			return 0;
+			return GetBlock(block)?.Efficiency ?? 0;
 		}
 
 		private static void Slider_writer(IMyTerminalBlock block, StringBuilder info)
 		{
 			var system = GetBlock(block);
-			if (system != null)
-				info.Append($"{system.Efficiency}%");
+			info.Append(system?.Efficiency.ToString() + "%");
 		}
 	}
 }
