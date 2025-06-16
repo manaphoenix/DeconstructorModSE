@@ -3,6 +3,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using SpaceEngineers.Game.ModAPI;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -231,13 +232,25 @@ namespace DeconstructorModSE
 			{
 				foreach (var item in system.Grids)
 				{
-					var BoxItem = new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(item.CustomName), MyStringId.NullOrEmpty, item);
+					var gridName = item.CustomName;
+					var distanceFromDeconstructor = (item.GetPosition() - system.Entity.GetPosition()).Length();
+					distanceFromDeconstructor = Math.Round(distanceFromDeconstructor, 2);
+					var listBoxString = MyStringId.GetOrCompute($"{gridName} - {distanceFromDeconstructor}m");
+
+					var BoxItem = new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), item);
 					items.Add(BoxItem);
 				}
 			}
 
 			if (system.SelectedGrid != null)
-				selected.Add(new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(system.SelectedGrid.CustomName), MyStringId.NullOrEmpty, system.SelectedGrid));
+			{
+				var gridName = system.SelectedGrid.CustomName;
+				var distanceFromDeconstructor = (system.SelectedGrid.GetPosition() - system.Entity.GetPosition()).Length();
+				distanceFromDeconstructor = Math.Round(distanceFromDeconstructor, 2);
+				var listBoxString = MyStringId.GetOrCompute($"{gridName} - {distanceFromDeconstructor}m");
+
+				selected.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), system.SelectedGrid));
+			}
 		}
 
 		private static void Slider_setter(IMyTerminalBlock block, float value)
