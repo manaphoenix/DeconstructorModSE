@@ -9,22 +9,23 @@ namespace DeconstructorModSE.Sync
 	{
 		public readonly ushort PacketId;
 
-		public Networking(ushort packetId)
+		public Networking(ushort packetID)
 		{
-			PacketId = packetId;
+			PacketId = packetID;
+
 		}
 
 		public void Register()
 		{
-			MyAPIGateway.Multiplayer.RegisterMessageHandler(PacketId, ReceivedPacket);
+			MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(PacketId, ReceivedPacket);
 		}
 
 		public void Unregister()
 		{
-			MyAPIGateway.Multiplayer.UnregisterMessageHandler(PacketId, ReceivedPacket);
+			MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(PacketId, ReceivedPacket);
 		}
 
-		private void ReceivedPacket(byte[] rawData) // executed when a packet is received on this machine
+		private void ReceivedPacket(ushort networkID, byte[] rawData, ulong steamID, bool isSenderServer) // executed when a packet is received on this machine
 		{
 			try
 			{
