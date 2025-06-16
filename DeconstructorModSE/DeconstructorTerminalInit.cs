@@ -228,28 +228,23 @@ namespace DeconstructorModSE
 		private static void List_content(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> items, List<MyTerminalControlListBoxItem> selected)
 		{
 			var system = GetBlock(block);
-			if (system != null && system.Grids != null && system.Grids.Count > 0)
+			if (system?.Grids != null)
 			{
 				foreach (var item in system.Grids)
 				{
-					var gridName = item.CustomName;
-					var distanceFromDeconstructor = (item.GetPosition() - system.Entity.GetPosition()).Length();
-					distanceFromDeconstructor = Math.Round(distanceFromDeconstructor, 2);
-					var listBoxString = MyStringId.GetOrCompute($"{gridName} - {distanceFromDeconstructor}m");
+					var distanceFromDeconstructor = Math.Round((item.GetPosition() - system.Entity.GetPosition()).Length(), 2);
+					var listBoxString = MyStringId.GetOrCompute($"{item.CustomName} - {distanceFromDeconstructor}m");
 
-					var BoxItem = new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), item);
-					items.Add(BoxItem);
+					items.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), item));
 				}
-			}
 
-			if (system.SelectedGrid != null)
-			{
-				var gridName = system.SelectedGrid.CustomName;
-				var distanceFromDeconstructor = (system.SelectedGrid.GetPosition() - system.Entity.GetPosition()).Length();
-				distanceFromDeconstructor = Math.Round(distanceFromDeconstructor, 2);
-				var listBoxString = MyStringId.GetOrCompute($"{gridName} - {distanceFromDeconstructor}m");
+				if (system.SelectedGrid != null)
+				{
+					var distanceFromDeconstructor = Math.Round((system.SelectedGrid.GetPosition() - system.Entity.GetPosition()).Length(), 2);
+					var listBoxString = MyStringId.GetOrCompute($"{system.SelectedGrid.CustomName} - {distanceFromDeconstructor}m");
 
-				selected.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), system.SelectedGrid));
+					selected.Add(new MyTerminalControlListBoxItem(listBoxString, MyStringId.GetOrCompute($"{distanceFromDeconstructor}m"), system.SelectedGrid));
+				}
 			}
 		}
 
