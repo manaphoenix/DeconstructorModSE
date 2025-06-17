@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using VRage.Game;
 using VRage.Game.Components;
+using VRage.Game.Graphics;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
@@ -20,6 +21,16 @@ namespace DeconstructorModSE
 	[MyEntityComponentDescriptor(typeof(MyObjectBuilder_Collector), false, "LargeDeconstructor")]
 	public class DeconstructorMod : MyGameLogicComponent
 	{
+		//Color Settings
+		// On - Green
+		// Off - Red
+		// Working - Blue
+		// Idle - Yellow
+		private Color OnColor = Color.Green;
+		private Color OffColor = Color.Red;
+		private Color WorkingColor = new Color(0,255,255);
+		private Color IdleColor = Color.Yellow;
+
 		//Settings
 		public const float Efficiency_Min = 0;
 
@@ -270,6 +281,7 @@ namespace DeconstructorModSE
 			SyncSettings();
 			if (deconstructor.IsFunctional && deconstructor.IsWorking && deconstructor.Enabled)
 			{
+				deconstructor.SetEmissiveParts("Emissive", OnColor, 1);
 				if (Utils.Grids == null || Grids == null) return;
 				deconstructor.RefreshCustomInfo();
 
@@ -277,6 +289,7 @@ namespace DeconstructorModSE
 				{
 					if (Settings.Items.Count > 0)
 					{
+						deconstructor.SetEmissiveParts("Emissive", IdleColor, 1);
 						Utils.SpawnItems(MyInventory, ref Settings.Items);
 						DeconstructorSession.Instance.ComponentList.UpdateVisual();
 					}
@@ -290,6 +303,7 @@ namespace DeconstructorModSE
 				{
 					if (Settings.IsGrinding)
 					{
+						deconstructor.SetEmissiveParts("Emissive", WorkingColor, 1);
 						NeedsUpdate = MyEntityUpdateEnum.EACH_FRAME | MyEntityUpdateEnum.EACH_100TH_FRAME;
 					}
 				}
@@ -330,7 +344,10 @@ namespace DeconstructorModSE
 				}
 			}
 			else
+			{
+				deconstructor.SetEmissiveParts("Emissive", OffColor, 1);
 				Grids.Clear();
+			}
 		}
 
 		public override void UpdateAfterSimulation()
