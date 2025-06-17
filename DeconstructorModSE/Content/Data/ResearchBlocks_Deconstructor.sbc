@@ -2,7 +2,7 @@
 <Definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <ResearchBlocks>
     <ResearchBlock xsi:type="ResearchBlock">
-      <Id Type="MyObjectBuilder_ShipGrinder" Subtype="LargeDeconstructor" />
+      <Id Type="MyObjectBuilder_PoweredCargoContainerDefinition" Subtype="LargeDeconstructor" />
       <UnlockedByGroups>
         <GroupSubtype>16</GroupSubtype>
       </UnlockedByGroups>

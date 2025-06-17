@@ -27,7 +27,7 @@ namespace DeconstructorModSE.Sync
 
         public override void Received(ref bool relay)
         {
-            var block = MyAPIGateway.Entities.GetEntityById(this.EntityId) as IMyShipGrinder;
+            var block = MyAPIGateway.Entities.GetEntityById(this.EntityId) as IMyCollector;
 
             if (block == null)
                 return;

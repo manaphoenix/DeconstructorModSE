@@ -9,7 +9,7 @@
       <DisplayName>Calculated Destruction</DisplayName>
       <Name>Calculated Destruction</Name>
       <ItemIds>
-		<string>ShipGrinder/LargeDeconstructor</string>
+		<string>Collector/LargeDeconstructor</string>
       </ItemIds>
     </Category>
 </CategoryClasses>

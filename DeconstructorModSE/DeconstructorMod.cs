@@ -13,11 +13,11 @@ using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using VRage.Utils;
 using VRageMath;
-using IMyShipGrinder = Sandbox.ModAPI.IMyShipGrinder;
+using IMyCollector = Sandbox.ModAPI.IMyCollector;
 
 namespace DeconstructorModSE
 {
-	[MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipGrinder), false, "LargeDeconstructor")]
+	[MyEntityComponentDescriptor(typeof(MyObjectBuilder_Collector), false, "LargeDeconstructor")]
 	public class DeconstructorMod : MyGameLogicComponent
 	{
 		//Settings
@@ -29,7 +29,8 @@ namespace DeconstructorModSE
 		public const int SETTINGS_CHANGED_COUNTDOWN = 10; // div by 10 because it runs in update10
 		public readonly Guid SETTINGS_GUID = new Guid("1EAB58EE-7304-45D2-B3C8-9BA2DC31EF90");
 		public readonly DeconstructorBlockSettings Settings = new DeconstructorBlockSettings();
-		private IMyShipGrinder deconstructor;
+		private IMyCollector deconstructor;
+		
 
 		private IMyInventory MyInventory;
 		public List<IMyCubeGrid> Grids;
@@ -150,7 +151,7 @@ namespace DeconstructorModSE
 			if (!DeconstructorTerminalInit._TerminalInit)
 			{
 				DeconstructorTerminalInit._TerminalInit = true;
-				DeconstructorTerminalInit.InitControls<IMyShipGrinder>();
+				DeconstructorTerminalInit.InitControls<IMyCollector>();
 
 			}
 
@@ -163,7 +164,7 @@ namespace DeconstructorModSE
             }
             */
 
-			deconstructor = (IMyShipGrinder)Entity;
+			deconstructor = (IMyCollector)Entity;
 			if (deconstructor.CubeGrid?.Physics == null) // ignore projected and other non-physical grids
 				return;
 
