@@ -19,18 +19,26 @@
       <UseModelIntersection>true</UseModelIntersection>
       <UsesDeformation>false</UsesDeformation>
       <Components>
-        <Component Subtype="SteelPlate" Count="15" />
-        <Component Subtype="Construction" Count="25" />
-        <Component Subtype="Computer" Count="8" />
-        <Component Subtype="Construction" Count="5" />
-        <Component Subtype="SteelPlate" Count="5" />
+        <Component Subtype="SteelPlate" Count="10"/>
+        <Component Subtype="MetalGrid" Count="5"/>
+        <Component Subtype="LargeTube" Count="10"/>
+        <Component Subtype="Motor" Count="10"/>
+        <Component Subtype="Detector" Count="1"/>
+        <Component Subtype="Computer" Count="20"/>
+        <Component Subtype="Superconductor" Count="10"/>
+        <Component Subtype="GravityGenerator" Count="4"/>
+        <Component Subtype="SteelPlate" Count="20"/>
       </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
+      <CriticalComponent Subtype="GravityGenerator" Index="0" />
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\GrinderConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\GrinderConstruction_2.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\GrinderConstruction_3.mwm" />
+        <Model BuildPercentUpperBound="0.353" File="Models\Deconstructor_BS1.mwm"/>
+        <Model BuildPercentUpperBound="0.93" File="Models\Deconstructor_BS2.mwm"/>
+        <Model BuildPercentUpperBound="1.00" File="Models\Deconstructor_BS3.mwm"/>
       </BuildProgressModels>
+      <ScreenAreas>
+        <ScreenArea Name="CockpitScreen_01" DisplayName="Screen" ScreenWidth="1" ScreenHeight="1" TextureResolution="256" Script="ClockDigital" />
+        <ScreenArea Name="CockpitScreen_02" DisplayName="Keyboard" ScreenWidth="11" ScreenHeight="4" TextureResolution="128" />
+      </ScreenAreas>
       <InventorySize>
         <X>2.5</X>
         <Y>2.5</Y>
@@ -48,12 +56,11 @@
       <EdgeType>Light</EdgeType>
       <Public>true</Public>
       <BuildTimeSeconds>24</BuildTimeSeconds>
-      <DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
+      <DamageEffectName>Damage_Electrical_Prototech_Assembler</DamageEffectName>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+      <PrimarySound>BlockAssembler</PrimarySound>
+      <ActionSound>BlockAssemblerProcess</ActionSound>
       <Flare></Flare>
-      <DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
-      <DestroySound>WepSmallWarheadExpl</DestroySound>
-      <ActionSound>BlockCollect</ActionSound>
       <PCU>100</PCU>
     </Definition>
   </CubeBlocks>

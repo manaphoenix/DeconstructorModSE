@@ -22,10 +22,6 @@ namespace DeconstructorModSE
 	public class DeconstructorMod : MyGameLogicComponent
 	{
 		//Color Settings
-		// On - Green
-		// Off - Red
-		// Working - Blue
-		// Idle - Yellow
 		private Color OnColor = Color.Green;
 		private Color OffColor = Color.Red;
 		private Color WorkingColor = new Color(0,255,255);
